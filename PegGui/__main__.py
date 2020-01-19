@@ -1,4 +1,4 @@
-from game import StateHandler
+from PegGui.game import StateHandler
 import logging
 
 root_logger = logging.getLogger('')

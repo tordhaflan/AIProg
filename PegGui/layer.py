@@ -1,5 +1,5 @@
 import pygame
-from gameconfig import GameConfig
+from PegGui.gameconfig import GameConfig
 
 
 class Layer(pygame.Surface):

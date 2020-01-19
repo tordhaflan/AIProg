@@ -1,4 +1,4 @@
-from gameconfig import GameConfig
+from PegGui.gameconfig import GameConfig
 
 
 class Puzzle(object):

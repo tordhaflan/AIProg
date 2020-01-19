@@ -1,3 +1,4 @@
+
 class GameConfig(object):
     SCREEN_SIZE = 640, 640
     CAPTION = "PegSolitare"

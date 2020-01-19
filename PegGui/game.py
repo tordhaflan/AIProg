@@ -1,8 +1,8 @@
 import pygame
-from gameconfig import GameConfig
-from layer import Layer
-from control import EventControl
-from pegsolitaire import Puzzle
+from PegGui.gameconfig import GameConfig
+from PegGui.layer import Layer
+from PegGui.control import EventControl
+from PegGui.pegsolitaire import Puzzle
 
 
 class State(object):
