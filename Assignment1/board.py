@@ -8,7 +8,40 @@ class Board(object):
     def __init__(self, layers=3, diamond=False):
         self.layers = layers
         self.diamond = diamond
+
         self.board = make_graph(self.layers, self.diamond)
+        self.set_neighbours()
+
+    def set_neighbours(self):
+        for i in range(self.layers):
+            for j in range(self.layers):
+                if self.board[i][j] is not None:
+                    n = self.find_neighbourhood(i, j)
+                    self.board[i][j].set_neighbours(n)
+
+    def find_neighbourhood(self, row, col):
+        neighbourhood = []
+        for i in range(6):
+            if check_boundary(row - 1, col, self.layers, self.diamond) and i == 0:
+                neighbourhood.append((row - 1, col))
+            elif check_boundary(row + 1, col, self.layers, self.diamond) and i == 1:
+                neighbourhood.append((row + 1, col))
+            elif check_boundary(row, col - 1, self.layers, self.diamond) and i == 2:
+                neighbourhood.append((row, col - 1))
+            elif check_boundary(row, col + 1, self.layers, self.diamond) and i == 3:
+                neighbourhood.append((row, col + 1))
+            elif self.diamond:
+                if check_boundary(row - 1, col + 1, self.layers, self.diamond) and i == 4:
+                    neighbourhood.append((row - 1, col + 1))
+                elif check_boundary(row + 1, col - 1, self.layers, self.diamond) and i == 4:
+                    neighbourhood.append((row + 1, col - 1))
+            else:
+                if check_boundary(row + 1, col + 1, self.layers, self.diamond) and i == 5:
+                    neighbourhood.append((row + 1, col + 1))
+                elif check_boundary(row - 1, col - 1, self.layers, self.diamond) and i == 5:
+                    neighbourhood.append((row - 1, col - 1))
+
+        return neighbourhood
 
 
 def make_graph(layers, diamond):
@@ -64,7 +97,6 @@ def make_triangle(graph, layers, row, i, n):
     return graph, n
 
 
-
 def draw_board(board):
     G = nx.Graph()
     for b in board.board:
@@ -72,12 +104,23 @@ def draw_board(board):
             peg = b[i]
             if peg is not None:
                 G.add_node(peg.pegNumber, pos=peg.coordinates)
+                for x,y in peg.neighbours:
+                    G.add_edge(peg.pegNumber, board.board[x][y].pegNumber)
     pos = nx.get_node_attributes(G, 'pos')
     nx.draw_networkx(G, pos)
     plt.show()
 
 
-B = Board(4)
+def check_boundary(row, col, layers, diamond):
+    if row < 0 or col < 0:
+        return False
+    elif row >= layers or col >= layers:
+        return False
+    elif not diamond and col > row:
+        return False
+    return True
+
+
+B = Board(4, True)
 
 draw_board(B)
-

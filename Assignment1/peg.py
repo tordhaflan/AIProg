@@ -1,14 +1,11 @@
 class Peg(object):
 
-    def __init__(self, x, y, number, neighbours=[], filled=True):
+    def __init__(self, x, y, number, filled=True):
         self.coordinates = (x,y)
-        self.neighbours = neighbours
+        self.neighbours = []
         self.filled = filled
         self.pegNumber = number
 
     def set_neighbours(self, neighbours):
-        [self.neighbours.append(n) for n in neighbours]
-
-
-
-
+        for n in neighbours:
+            self.neighbours.append(n)
