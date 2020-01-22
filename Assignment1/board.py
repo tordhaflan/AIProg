@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from Assignment1.peg import Peg
 
+
 class Board(object):
 
     def __init__(self, layers=3, diamond=False):
@@ -69,19 +70,20 @@ def make_lower_triangle(graph, layers, row, i, n):
         k += 2
     return graph, n
 
+
 def draw_board(board):
     G = nx.Graph()
     n = 1
     for b in board.board:
         for i in range(len(b)):
             peg = b[i]
-            G.add_node(peg.pegNumber, pos = peg.coordinates)
+            G.add_node(peg.pegNumber, pos=peg.coordinates)
             n += 1
     pos = nx.get_node_attributes(G, 'pos')
     nx.draw_networkx(G, pos)
     plt.show()
 
 
-B = Board(4,True)
+B = Board(4, True)
 
 draw_board(B)
