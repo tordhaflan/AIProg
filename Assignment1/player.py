@@ -9,7 +9,7 @@ class Player(object):
 
     # ser for meg et move på formen [[0,0], [1,0], [2,0]]
     def make_move(self, move):
-        game = self.board
+        game = self.game
         start, jump, goal = move[0], move[1], move[2]
 
         if not is_legal_move(game, move):
@@ -19,26 +19,24 @@ class Player(object):
         game.board[jump[0]][jump[1]].filled = False
         game.board[goal[0]][goal[1]].filled = True
 
-        #Sjekke om det finnes flere legal moves og evt. om det bare er en filled igjen.
+        # Sjekke om det finnes flere legal moves og evt. om det bare er en filled igjen.
 
         if not more_moves_available(game):
             if game_won(game):
-                return 1 # Hva skal returneres?
+                return 1  # Hva skal returneres?
             else:
-                return 2 # Hva returneres hvis spillet er ferdig, men ikke vunnet?
-
+                return 0  # Hva returneres hvis spillet er ferdig, men ikke vunnet?
 
         return game
 
 
-def is_legal_move(game=Board, move=[]):
+def is_legal_move(game, move):
     start, jump, end = move[0], move[1], move[2]
 
     if not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
         return False
     elif start not in game.board[jump[0]][jump[1]].neighbours and end not in game.board[jump[0]][jump[1]].neighbours:
         return False
-
 
     # Hvis ikke nabo (done) og sjekke om de er på rekke
 
@@ -59,22 +57,20 @@ def more_moves_available(game):
         if peg.filled:
             for neigh in peg.neighbours:
                 if neigh.filled:
-
-
+                    None
 
     return True
 
 
 def game_won(game):
     # Iterere over alle pegs i boardet:
-    pegs = game.board
     amount_filled = 0
-    for peg in range(1, pegs):
-        if peg.filled:
+    for peg in game.board:
+        if amount_filled > 1: return False
+        elif peg.filled:
             amount_filled += 1
 
     if amount_filled == 1:
         return True
 
     return False
-
