@@ -70,7 +70,7 @@ def make_upper_diamond(graph, layers, row, i, n):
     for j in range(layers - i - 1):
         k += 1
     for j in range(i + 1):
-        graph[i - j][j] = Peg(k, row - i, i-col, col, n, bool(random.getrandbits(1)))
+        graph[i - j][j] = Peg(k, row - i - 1, i-col, col, n, bool(random.getrandbits(1)))
         n += 1
         k += 2
         col += 1
@@ -79,11 +79,11 @@ def make_upper_diamond(graph, layers, row, i, n):
 
 def make_lower_diamond(graph, layers, row, i, n):
     k = 0
-    col = 0
+    col = 1
     for j in range(i - layers + 1, 0, -1):
         k += 1
     for j in range(row - i):
-        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i, layers-col, col, n, bool(random.getrandbits(1)))
+        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i - 1, layers-col, i-layers+col, n, bool(random.getrandbits(1)))
         n += 1
         k += 2
         col += 1
@@ -96,7 +96,7 @@ def make_triangle(graph, layers, row, i, n):
     for j in range(layers - i - 1):
         k += 1
     for j in range(i + 1):
-        graph[i][j] = Peg(k, row - i, i, col, n, bool(random.getrandbits(1)))
+        graph[i][j] = Peg(k, row - i - 1, i, col, n, bool(random.getrandbits(1)))
         n += 1
         k += 2
         col += 1
@@ -105,53 +105,69 @@ def make_triangle(graph, layers, row, i, n):
 
 def draw_board_final(board):
     G = nx.Graph()
-    color_map = []
+    color_map = {}
+    border_color = {}
     for b in board.board:
         for i in range(len(b)):
             peg = b[i]
             if peg is not None:
-                G.add_node(peg.pegNumber, pos=peg.coordinates)
+                G.add_node(peg.pegNumber, pos=peg.drawing_coordinates)
                 if peg.filled:
-                    color_map.append('black')
+                    color_map[peg.pegNumber] = 'darkblue'
+                    border_color[peg.pegNumber] = 'darkblue'
                 else:
-                    color_map.append('grey')
+                    color_map[peg.pegNumber] = 'white'
+                    border_color[peg.pegNumber] = 'grey'
 
                 for x, y in peg.neighbours:
                     G.add_edge(peg.pegNumber, board.board[x][y].pegNumber)
     pos = nx.get_node_attributes(G, 'pos')
-    nx.draw_networkx(G, pos, node_color=color_map, with_labels=False)
+    color, border = sort_color(pos, color_map, border_color)
+    nx.draw_networkx(G, pos, node_color=color, edgecolors=border, with_labels=False)
     plt.show()
 
 
 def draw_board(board, start, jump):
     G = nx.Graph()
-    color_map = []
-    border_color = []
-    for b in board.board:
+    color_map = {}
+    border_color = {}
+    for index, b in enumerate(board.board):
         for i in range(len(b)):
             peg = b[i]
-            print(peg.coordinates, peg.pegNumber, peg.filled)
             if peg is not None:
+                print(peg.coordinates, peg.drawing_coordinates, peg.pegNumber, peg.filled)
                 G.add_node(peg.pegNumber, pos=peg.drawing_coordinates)
                 if peg.coordinates == start:
-                    color_map.append('green')
-                    border_color.append('green')
+                    color_map[peg.pegNumber] = 'green'
+                    border_color[peg.pegNumber] = 'green'
                 elif peg.coordinates == jump:
-                    color_map.append('darkred')
-                    border_color.append('darkred')
+                    color_map[peg.pegNumber] = 'darkred'
+                    border_color[peg.pegNumber] = 'darkred'
                 elif peg.filled:
-                    color_map.append('darkblue')
-                    border_color.append('darkblue')
+                    color_map[peg.pegNumber] = 'darkblue'
+                    border_color[peg.pegNumber] = 'darkblue'
                 else:
-                    color_map.append('white')
-                    border_color.append('grey')
+                    color_map[peg.pegNumber] = 'white'
+                    border_color[peg.pegNumber] = 'grey'
 
                 for x, y in peg.neighbours:
                     G.add_edge(peg.pegNumber, board.board[x][y].pegNumber)
 
     pos = nx.get_node_attributes(G, 'pos')
-    nx.draw_networkx(G, pos, node_color=color_map, edgecolors=border_color)
+    color, border = sort_color(pos, color_map, border_color)
+    nx.draw_networkx(G, pos, node_color=color, edgecolors=border, with_labels=False)
     plt.show()
+
+
+def sort_color(pos, color_map, border_color):
+    new_map = []
+    new_border = []
+    for key in pos.keys():
+        new_map.append(color_map[key])
+        new_border.append(border_color[key])
+
+    return new_map, new_border
+
 
 
 def check_boundary(row, col, layers, diamond):
@@ -164,6 +180,7 @@ def check_boundary(row, col, layers, diamond):
     return True
 
 
-B = Board(5, True)
+B = Board(4, True)
 
-draw_board(B, (0, 0), (1, 0))
+draw_board_final(B)
+
