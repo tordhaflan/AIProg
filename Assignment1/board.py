@@ -33,10 +33,10 @@ class Board(object):
             elif self.diamond:
                 if check_boundary(row - 1, col + 1, self.layers, self.diamond) and i == 4:
                     neighbourhood.append((row - 1, col + 1))
-                elif check_boundary(row + 1, col - 1, self.layers, self.diamond) and i == 4:
+                elif check_boundary(row + 1, col - 1, self.layers, self.diamond) and i == 5:
                     neighbourhood.append((row + 1, col - 1))
             else:
-                if check_boundary(row + 1, col + 1, self.layers, self.diamond) and i == 5:
+                if check_boundary(row + 1, col + 1, self.layers, self.diamond) and i == 4:
                     neighbourhood.append((row + 1, col + 1))
                 elif check_boundary(row - 1, col - 1, self.layers, self.diamond) and i == 5:
                     neighbourhood.append((row - 1, col - 1))
@@ -70,7 +70,7 @@ def make_upper_diamond(graph, layers, row, i, n):
     for j in range(layers - i - 1):
         k += 1
     for j in range(i + 1):
-        graph[i - j][j] = Peg(k, row - i - 1, i-col, col, n, bool(random.getrandbits(1)))
+        graph[i - j][j] = Peg(k, row - i - 1, i-col, col, n)
         n += 1
         k += 2
         col += 1
@@ -83,7 +83,7 @@ def make_lower_diamond(graph, layers, row, i, n):
     for j in range(i - layers + 1, 0, -1):
         k += 1
     for j in range(row - i):
-        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i - 1, layers-col, i-layers+col, n, bool(random.getrandbits(1)))
+        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i - 1, layers-col, i-layers+col, n)
         n += 1
         k += 2
         col += 1
@@ -96,7 +96,7 @@ def make_triangle(graph, layers, row, i, n):
     for j in range(layers - i - 1):
         k += 1
     for j in range(i + 1):
-        graph[i][j] = Peg(k, row - i - 1, i, col, n, bool(random.getrandbits(1)))
+        graph[i][j] = Peg(k, row - i - 1, i, col, n)
         n += 1
         k += 2
         col += 1
@@ -135,7 +135,6 @@ def draw_board(board, start, jump):
         for i in range(len(b)):
             peg = b[i]
             if peg is not None:
-                print(peg.coordinates, peg.drawing_coordinates, peg.pegNumber, peg.filled)
                 G.add_node(peg.pegNumber, pos=peg.drawing_coordinates)
                 if peg.coordinates == start:
                     color_map[peg.pegNumber] = 'green'

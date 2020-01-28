@@ -1,4 +1,4 @@
-from Assignment1.board import Board
+from Assignment1.board import Board, check_boundary
 from Assignment1.peg import Peg
 
 
@@ -32,10 +32,18 @@ def is_legal_move(game, move):
     start, jump, end = move[0], move[1], move[2]
 
     if not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
+        print("a")
         return False
-    elif start not in game.board[jump[0]][jump[1]].neighbours and end not in game.board[jump[0]][jump[1]].neighbours:
+    elif start not in game.board[jump[0]][jump[1]].neighbours or end not in game.board[jump[0]][jump[1]].neighbours:
+        print("b")
         return False
     elif not is_on_line(start, jump, end):
+        print("c")
+        return False
+    elif (not check_boundary(start[0], start[1], game.layers, game.diamond)
+            or not check_boundary(jump[0], jump[1], game.layers, game.diamond)
+            or not check_boundary(end[0], end[1], game.layers, game.diamond)):
+        print("c")
         return False
 
     return True
@@ -59,20 +67,18 @@ def is_on_line(start, jump, end):
 
 def more_moves_available(game):
     # Iterere over alle pegs i boardet:
-    rows = game.board.layers - 1
+    rows = game.layers - 1
     columns = rows
-    for row in rows:
-        for column in columns:
-            if game.board[row][column].filled:
+    for row in range(0, rows):
+        for column in range(0, columns):
+            if check_boundary(row, column, game.layers, game.diamond) and game.board[row][column].filled:
                 for neigh in game.board[row][column].neighbours:
-                    # Sjekke om nabo er på linje og om neste evt. nabo er utenfor index
-                    if neigh.filled:
-                        delta_column = neigh.coordinates[1] - column
-                        delta_row = neigh.coordinates[0] - row
-                        end_column = neigh.coordinates[1] + delta_column
-                        end_row = neigh.coordinates[0] + delta_row
-                        if (not end_column >= column or not end_row >= rows
-                                or not game.board[end_row][end_column] is None):
+                    if game.board[neigh[0]][neigh[1]].filled:
+                        delta_column = neigh[1] - column
+                        delta_row = neigh[0] - row
+                        end_column = neigh[1] + delta_column
+                        end_row = neigh[0] + delta_row
+                        if check_boundary(end_row, end_column, game.layers, game.diamond):
                             if not game.board[end_row][end_column].filled:
                                 return True
 
@@ -82,10 +88,10 @@ def more_moves_available(game):
 def game_won(game):
     # Iterere over alle pegs i boardet:
     amount_filled = 0
-    rows = game.board.layers - 1
+    rows = game.layers - 1
     columns = rows
-    for row in rows:
-        for column in columns:
+    for row in range(0, rows):
+        for column in range(0, columns):
             if game.board[row][column].filled:
                 amount_filled += 1
 
