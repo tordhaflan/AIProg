@@ -168,7 +168,6 @@ def sort_color(pos, color_map, border_color):
     return new_map, new_border
 
 
-
 def check_boundary(row, col, layers, diamond):
     if row < 0 or col < 0:
         return False
@@ -179,7 +178,4 @@ def check_boundary(row, col, layers, diamond):
     return True
 
 
-B = Board(4, True)
-
-draw_board_final(B)
 

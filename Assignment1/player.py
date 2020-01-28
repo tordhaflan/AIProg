@@ -1,5 +1,6 @@
-from Assignment1.board import Board, check_boundary
+from Assignment1.board import Board, check_boundary, draw_board, draw_board_final
 from Assignment1.peg import Peg
+import random
 
 
 class Player(object):
@@ -31,20 +32,17 @@ class Player(object):
 def is_legal_move(game, move):
     start, jump, end = move[0], move[1], move[2]
 
-    if not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
-        print("a")
-        return False
-    elif start not in game.board[jump[0]][jump[1]].neighbours or end not in game.board[jump[0]][jump[1]].neighbours:
-        print("b")
-        return False
-    elif not is_on_line(start, jump, end):
-        print("c")
-        return False
-    elif (not check_boundary(start[0], start[1], game.layers, game.diamond)
+    if (not check_boundary(start[0], start[1], game.layers, game.diamond)
             or not check_boundary(jump[0], jump[1], game.layers, game.diamond)
             or not check_boundary(end[0], end[1], game.layers, game.diamond)):
-        print("c")
         return False
+    elif not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
+        return False
+    elif start not in game.board[jump[0]][jump[1]].neighbours or end not in game.board[jump[0]][jump[1]].neighbours:
+        return False
+    elif not is_on_line(start, jump, end):
+        return False
+
 
     return True
 
@@ -67,10 +65,10 @@ def is_on_line(start, jump, end):
 
 def more_moves_available(game):
     # Iterere over alle pegs i boardet:
-    rows = game.layers - 1
+    rows = game.layers
     columns = rows
-    for row in range(0, rows):
-        for column in range(0, columns):
+    for row in range(rows):
+        for column in range(columns):
             if check_boundary(row, column, game.layers, game.diamond) and game.board[row][column].filled:
                 for neigh in game.board[row][column].neighbours:
                     if game.board[neigh[0]][neigh[1]].filled:
@@ -92,10 +90,41 @@ def game_won(game):
     columns = rows
     for row in range(0, rows):
         for column in range(0, columns):
-            if game.board[row][column].filled:
-                amount_filled += 1
+            if check_boundary(row, column, game.layers, game.diamond):
+                if game.board[row][column].filled:
+                    amount_filled += 1
 
     if amount_filled == 1:
         return True
 
     return False
+
+layers = 4
+
+B = Board(layers)
+
+P = Player(B)
+
+P.game.board[1][0].filled = False
+
+draw_board_final(P.game)
+
+print(more_moves_available(P.game))
+
+while more_moves_available(P.game):
+    r = random.randint(0,layers-1)
+    c = random.randint(0,layers-1)
+    peg = P.game.board[r][c]
+    if peg is not None:
+        neigh = peg.neighbours[random.randint(0, len(peg.neighbours)-1)]
+        delta_r = neigh[0]-r
+        delta_c = neigh[1]-c
+        move = [(r,c), (r+delta_r, c+delta_c), (r+2*delta_r, c+2*delta_c)]
+        if is_legal_move(P.game, move):
+            draw_board(P.game, move[0], move[1])
+            P.make_move(move)
+
+draw_board_final(P.game)
+
+
+
