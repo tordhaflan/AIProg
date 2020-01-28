@@ -7,7 +7,7 @@ class Player(object):
     def __init__(self, game=Board):
         self.game = game
 
-    # ser for meg et move på formen [[0,0], [1,0], [2,0]]
+    # ser for meg et move på formen [(0,0), (1,0),(2,0)]
     def make_move(self, move):
         game = self.game
         start, jump, goal = move[0], move[1], move[2]
@@ -19,13 +19,11 @@ class Player(object):
         game.board[jump[0]][jump[1]].filled = False
         game.board[goal[0]][goal[1]].filled = True
 
-        # Sjekke om det finnes flere legal moves og evt. om det bare er en filled igjen.
-
         if not more_moves_available(game):
             if game_won(game):
                 return 1  # Hva skal returneres?
             else:
-                return 0  # Hva returneres hvis spillet er ferdig, men ikke vunnet?
+                return 0  # Hva hvis spillet er ferdig, men ikke vunnet?
 
         return game
 
@@ -37,14 +35,23 @@ def is_legal_move(game, move):
         return False
     elif start not in game.board[jump[0]][jump[1]].neighbours and end not in game.board[jump[0]][jump[1]].neighbours:
         return False
-
-    # Hvis ikke nabo (done) og sjekke om de er på rekke
+    elif not is_on_line(start, jump, end):
+        return False
 
     return True
 
 
-def is_filled(game=Board, coordinates=[]):
+def is_filled(game, coordinates):
     if game.board[coordinates[0]][coordinates[1]].filled:
+        return True
+
+    return False
+
+
+def is_on_line(start, jump, end):
+    delta_row = jump[0] - start[0]
+    delta_column = jump[1] - start[1]
+    if end[0] == jump[0] + delta_row and end[1] == jump[1] + delta_column:
         return True
 
     return False
@@ -52,23 +59,35 @@ def is_filled(game=Board, coordinates=[]):
 
 def more_moves_available(game):
     # Iterere over alle pegs i boardet:
-    pegs = game.board
-    for peg in range(1, pegs):
-        if peg.filled:
-            for neigh in peg.neighbours:
-                if neigh.filled:
-                    None
+    rows = game.board.layers - 1
+    columns = rows
+    for row in rows:
+        for column in columns:
+            if game.board[row][column].filled:
+                for neigh in game.board[row][column].neighbours:
+                    # Sjekke om nabo er på linje og om neste evt. nabo er utenfor index
+                    if neigh.filled:
+                        delta_column = neigh.coordinates[1] - column
+                        delta_row = neigh.coordinates[0] - row
+                        end_column = neigh.coordinates[1] + delta_column
+                        end_row = neigh.coordinates[0] + delta_row
+                        if (not end_column >= column or not end_row >= rows
+                                or not game.board[end_row][end_column] is None):
+                            if not game.board[end_row][end_column].filled:
+                                return True
 
-    return True
+    return False
 
 
 def game_won(game):
     # Iterere over alle pegs i boardet:
     amount_filled = 0
-    for peg in game.board:
-        if amount_filled > 1: return False
-        elif peg.filled:
-            amount_filled += 1
+    rows = game.board.layers - 1
+    columns = rows
+    for row in rows:
+        for column in columns:
+            if game.board[row][column].filled:
+                amount_filled += 1
 
     if amount_filled == 1:
         return True
