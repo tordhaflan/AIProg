@@ -121,6 +121,6 @@ def check_boundary(row, col, layers, diamond):
     return True
 
 
-B = Board(4, True)
+B = Board(7)
 
 draw_board(B)
