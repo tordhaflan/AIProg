@@ -1,5 +1,4 @@
 from Assignment1.board import Board, check_boundary, draw_board, draw_board_final
-from Assignment1.peg import Peg
 import random
 
 
@@ -36,13 +35,12 @@ def is_legal_move(game, move):
             or not check_boundary(jump[0], jump[1], game.layers, game.diamond)
             or not check_boundary(end[0], end[1], game.layers, game.diamond)):
         return False
-    elif not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
-        return False
     elif start not in game.board[jump[0]][jump[1]].neighbours or end not in game.board[jump[0]][jump[1]].neighbours:
         return False
     elif not is_on_line(start, jump, end):
         return False
-
+    elif not is_filled(game, start) or (not is_filled(game, jump)) or (is_filled(game, end)):
+        return False
 
     return True
 
@@ -86,7 +84,7 @@ def more_moves_available(game):
 def game_won(game):
     # Iterere over alle pegs i boardet:
     amount_filled = 0
-    rows = game.layers - 1
+    rows = game.layers
     columns = rows
     for row in range(0, rows):
         for column in range(0, columns):
@@ -99,32 +97,41 @@ def game_won(game):
 
     return False
 
-layers = 4
+
+layers = 8
 
 B = Board(layers)
 
 P = Player(B)
 
-P.game.board[1][0].filled = False
+if not B.diamond:
+    row = random.randint(0, layers-1)
+    column = random.randint(0, row)
+    open_cell = (row, column)
+else:
+    open_cell = (random.randint(0, layers-1), random.randint(0, layers-1))
+
+P.game.board[open_cell[0]][open_cell[1]].filled = False
 
 draw_board_final(P.game)
 
-print(more_moves_available(P.game))
+# print(more_moves_available(P.game))
 
 while more_moves_available(P.game):
-    r = random.randint(0,layers-1)
-    c = random.randint(0,layers-1)
+    r = random.randint(0, layers-1)
+    c = random.randint(0, layers-1)
     peg = P.game.board[r][c]
     if peg is not None:
         neigh = peg.neighbours[random.randint(0, len(peg.neighbours)-1)]
         delta_r = neigh[0]-r
         delta_c = neigh[1]-c
-        move = [(r,c), (r+delta_r, c+delta_c), (r+2*delta_r, c+2*delta_c)]
+        move = [(r, c), (r+delta_r, c+delta_c), (r+2*delta_r, c+2*delta_c)]
         if is_legal_move(P.game, move):
             draw_board(P.game, move[0], move[1])
             P.make_move(move)
 
 draw_board_final(P.game)
+print(game_won(P.game))
 
 
 
