@@ -1,4 +1,4 @@
-import copy
+import copy, operator
 
 from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final
 import random
@@ -8,37 +8,41 @@ class Player(object):
 
     #Må skrives om slik at den tar inn parametere og lager et board objekt selv
     def __init__(self, game=Board, open_cells=[]):
+
         self.initial_game = copy.deepcopy(game)
         self.game = game
         self.move = legal_moves(self.game.diamond)
 
-        self.game.set_open_cells(open_cells) #endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
+        self.game.set_open_cells(open_cells)
+        self.initial_game.set_open_cells(open_cells)#endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
 
     # ser for meg et move på formen [(0,0), (1,0),(2,0)]
     def make_move(self, move):
-        game = self.game
+        #game = self.game
         start, jump, goal = move[0], move[1], move[2]
 
-        if not is_legal_move(game, move):
+        if not is_legal_move(self.game, move):
             return False  # Kanskje bare returnere brettet uten å gjøre move?
 
-        game.board[start[0]][start[1]].filled = False
-        game.board[jump[0]][jump[1]].filled = False
-        game.board[goal[0]][goal[1]].filled = True
+        self.game.board[start[0]][start[1]].filled = False
+        self.game.board[jump[0]][jump[1]].filled = False
+        self.game.board[goal[0]][goal[1]].filled = True
 
-        if not more_moves_available(game):
-            if game_won(game):
+        if not more_moves_available(self.game):
+            if game_won(self.game):
                 return 1  # Hva skal returneres?
             else:
                 return 0  # Hva hvis spillet er ferdig, men ikke vunnet?
 
-        return game
+        return self.game
 
     def get_binary_board(self):
         board = []
         for row in self.game.board:
             for element in row:
-                if element.filled:
+                if element is None:
+                    board.append(0)
+                elif element.filled:
                     board.append(1)
                 else:
                     board.append(0)
@@ -46,12 +50,14 @@ class Player(object):
 
     def get_moves(self):
         moves = []
+        check = [(3, 3), (2, 2), (1, 1)]
         for row in self.game.board:
             for peg in row:
-                for r, c in self.move:
-                    move = [peg.coordinates, r, c]
-                    if is_legal_move(move):
-                        moves.append(move)
+                if peg is not None:
+                    for r, c in self.move:
+                        move = [peg.coordinates, tuple(map(operator.add,peg.coordinates,r)), tuple(map(operator.add,peg.coordinates,c))]
+                        if is_legal_move(self.game, move):
+                            moves.append(tuple(move))
         return moves
 
     def do_move(self, move):
@@ -63,17 +69,24 @@ class Player(object):
 
         return self.get_binary_board()
 
-    def won(self):
-        if not more_moves_available(self.game):
-            if game_won(self.game):
-                self.game = copy.deepcopy(self.initial_game)
-                return True  # Hva skal returneres?
-            else:
-                return False  # Hva hvis spillet er ferdig, men ikke vunnet?
+    def game_over(self):
+        if more_moves_available(self.game):
+            return False
+        return True  # Hva skal returneres?
+
+    def get_reward(self):
+        pegs_left = 0
+        for row in self.game.board:
+            for element in row:
+                if element is not None and element.filled:
+                    pegs_left += 1
+        self.game = copy.deepcopy(self.initial_game)
+        return 1 if pegs_left == 1 else -pegs_left/self.initial_game.layers**2 # kanskje skrive om else for triangel
+
 
 
 def legal_moves(diamond):
-    moves = [[(-1, 0), (-2, 0)], [(1, 0), (2, 0)], [(0, -1), (0, -1)], [(0, 1), (0, 2)]]
+    moves = [[(-1, 0), (-2, 0)], [(1, 0), (2, 0)], [(0, -1), (0, -2)], [(0, 1), (0, 2)]]
 
     if diamond:
         moves.append([(-1, 1), (-2, 2)])
@@ -81,6 +94,7 @@ def legal_moves(diamond):
     else:
         moves.append([(-1, -1), (-2, -2)])
         moves.append([(1, 1), (2, 2)])
+
     return moves
 
 
@@ -153,9 +167,8 @@ def game_won(game):
         return True
 
     return False
-
-
-layers = 8
+"""
+ayers = 8
 
 B = Board(layers)
 
@@ -189,3 +202,7 @@ while more_moves_available(P.game):
 
 draw_board_final(P.game)
 print(game_won(P.game))
+
+
+
+"""
