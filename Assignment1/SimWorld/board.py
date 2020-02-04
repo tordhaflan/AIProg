@@ -1,7 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import random
-from Assignment1.peg import Peg
+from Assignment1.SimWorld.peg import Peg
 
 
 class Board(object):
@@ -43,6 +42,10 @@ class Board(object):
 
         return neighbourhood
 
+    def set_open_cells(self, open_cells):
+        for r,c in open_cells:
+            self.board[r][c].filled = False
+
 
 def make_graph(layers, diamond):
     if diamond:
@@ -70,7 +73,7 @@ def make_upper_diamond(graph, layers, row, i, n):
     for j in range(layers - i - 1):
         k += 1
     for j in range(i + 1):
-        graph[i - j][j] = Peg(k, row - i - 1, i-col, col, n)
+        graph[i - j][j] = Peg(k, row - i - 1, i - col, col, n)
         n += 1
         k += 2
         col += 1
@@ -83,7 +86,7 @@ def make_lower_diamond(graph, layers, row, i, n):
     for j in range(i - layers + 1, 0, -1):
         k += 1
     for j in range(row - i):
-        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i - 1, layers-col, i-layers+col, n)
+        graph[layers - j - 1][i - layers + j + 1] = Peg(k, row - i - 1, layers - col, i - layers + col, n)
         n += 1
         k += 2
         col += 1
@@ -176,6 +179,3 @@ def check_boundary(row, col, layers, diamond):
     elif not diamond and col > row:
         return False
     return True
-
-
-

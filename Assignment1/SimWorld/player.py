@@ -1,11 +1,18 @@
-from Assignment1.board import Board, check_boundary, draw_board, draw_board_final
+import copy
+
+from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final
 import random
 
 
 class Player(object):
 
-    def __init__(self, game=Board):
+    #Må skrives om slik at den tar inn parametere og lager et board objekt selv
+    def __init__(self, game=Board, open_cells=[]):
+        self.initial_game = copy.deepcopy(game)
         self.game = game
+        self.move = legal_moves(self.game.diamond)
+
+        self.game.set_open_cells(open_cells) #endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
 
     # ser for meg et move på formen [(0,0), (1,0),(2,0)]
     def make_move(self, move):
@@ -26,6 +33,56 @@ class Player(object):
                 return 0  # Hva hvis spillet er ferdig, men ikke vunnet?
 
         return game
+
+    def get_binary_board(self):
+        board = []
+        for row in self.game.board:
+            for element in row:
+                if element.filled:
+                    board.append(1)
+                else:
+                    board.append(0)
+        return tuple(board)
+
+    def get_moves(self):
+        moves = []
+        for row in self.game.board:
+            for peg in row:
+                for r, c in self.move:
+                    move = [peg.coordinates, r, c]
+                    if is_legal_move(move):
+                        moves.append(move)
+        return moves
+
+    def do_move(self, move):
+        start, jump, goal = move[0], move[1], move[2]
+
+        self.game.board[start[0]][start[1]].filled = False
+        self.game.board[jump[0]][jump[1]].filled = False
+        self.game.board[goal[0]][goal[1]].filled = True
+
+        return self.get_binary_board()
+
+    def won(self):
+        if not more_moves_available(self.game):
+            if game_won(self.game):
+                self.game = copy.deepcopy(self.initial_game)
+                return True  # Hva skal returneres?
+            else:
+                return False  # Hva hvis spillet er ferdig, men ikke vunnet?
+
+
+def legal_moves(diamond):
+    moves = [[(-1, 0), (-2, 0)], [(1, 0), (2, 0)], [(0, -1), (0, -1)], [(0, 1), (0, 2)]]
+
+    if diamond:
+        moves.append([(-1, 1), (-2, 2)])
+        moves.append([(1, -1), (2, -2)])
+    else:
+        moves.append([(-1, -1), (-2, -2)])
+        moves.append([(1, 1), (2, 2)])
+    return moves
+
 
 
 def is_legal_move(game, move):
@@ -105,11 +162,11 @@ B = Board(layers)
 P = Player(B)
 
 if not B.diamond:
-    row = random.randint(0, layers-1)
+    row = random.randint(0, layers - 1)
     column = random.randint(0, row)
     open_cell = (row, column)
 else:
-    open_cell = (random.randint(0, layers-1), random.randint(0, layers-1))
+    open_cell = (random.randint(0, layers - 1), random.randint(0, layers - 1))
 
 P.game.board[open_cell[0]][open_cell[1]].filled = False
 
@@ -118,20 +175,17 @@ draw_board_final(P.game)
 # print(more_moves_available(P.game))
 
 while more_moves_available(P.game):
-    r = random.randint(0, layers-1)
-    c = random.randint(0, layers-1)
+    r = random.randint(0, layers - 1)
+    c = random.randint(0, layers - 1)
     peg = P.game.board[r][c]
     if peg is not None:
-        neigh = peg.neighbours[random.randint(0, len(peg.neighbours)-1)]
-        delta_r = neigh[0]-r
-        delta_c = neigh[1]-c
-        move = [(r, c), (r+delta_r, c+delta_c), (r+2*delta_r, c+2*delta_c)]
+        neigh = peg.neighbours[random.randint(0, len(peg.neighbours) - 1)]
+        delta_r = neigh[0] - r
+        delta_c = neigh[1] - c
+        move = [(r, c), (r + delta_r, c + delta_c), (r + 2 * delta_r, c + 2 * delta_c)]
         if is_legal_move(P.game, move):
             draw_board(P.game, move[0], move[1])
             P.make_move(move)
 
 draw_board_final(P.game)
 print(game_won(P.game))
-
-
-
