@@ -88,8 +88,8 @@ def reset_eligibilities(actor, critic):
 
 
 def get_best_action(actor_values, state, actions):
-    value = -1
-    best_action = None
+    value = actor_values[state + actions[0]]
+    best_action = actions[0]
     for action in actions:
         if actor_values[state + action] >= value:
             best_action = action
