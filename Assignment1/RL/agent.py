@@ -29,7 +29,7 @@ class Agent:
     def train(self):
         self.critic.values[self.initial_state] = random.randint(1, 10) / 100
         initial_actions = self.sim_world.get_moves()
-        self.set_actor_values(self.initial_state, initial_actions)
+        self.actor.set_values(self.initial_state, initial_actions)
 
         for i in range(self.episodes):
             path = []
