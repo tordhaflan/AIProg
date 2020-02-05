@@ -1,5 +1,6 @@
-import copy
+import numpy as np
 import random
+import matplotlib.pyplot as plt
 from Assignment1.RL.actor import Actor
 from Assignment1.RL.critic import Critic
 from Assignment1.SimWorld.board import Board
@@ -36,7 +37,7 @@ class Agent:
             self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
                                                                                       self.critic.eligibilities)
 
-            action = get_best_action(self.actor.values, self.initial_state, initial_actions)
+            action = get_best_action(self.actor.values, self.initial_state, initial_actions, self.initial_epsilon)
             path.append((self.initial_state, action))
             state = self.sim_world.do_move(action)
             while not self.sim_world.game_over():
@@ -44,7 +45,7 @@ class Agent:
                 if not self.critic.values.keys().__contains__(state):
                     self.critic.values[state] = random.randint(1, 10) / 100
                     self.actor.set_values(state, actions)
-                action = get_best_action(self.actor.values, state, actions)
+                action = get_best_action(self.actor.values, state, actions, self.initial_epsilon)
                 self.actor.eligibilities[state + action] = 1
                 self.critic.eligibilities[state] = 1
                 path.append((state, action))
@@ -61,8 +62,8 @@ class Agent:
             for j in range(len(path)):
                 state, action = path.pop()
                 if j == 0:
-                    reward = self.sim_world.get_reward()
-
+                    reward, pegs_left = self.sim_world.get_reward()
+                    self.pegs_left.append(pegs_left)
                 else:
                     reward = 0
                     self.critic.update_eligibility(state, previous_state)
@@ -74,9 +75,8 @@ class Agent:
 
                 previous_state = state
                 previous_action = action
-
+        plot_peg_convergency(self.pegs_left)
         self.sim_world.show_game(final_path)
-
 
 def reset_eligibilities(actor, critic):
     for a in actor.keys():
@@ -87,16 +87,21 @@ def reset_eligibilities(actor, critic):
     return actor, critic
 
 
-def get_best_action(actor_values, state, actions):
+def get_best_action(actor_values, state, actions, epsilon):
     value = actor_values[state + actions[0]]
     best_action = actions[0]
     for action in actions:
         if actor_values[state + action] >= value:
             best_action = action
             value = actor_values[state + action]
-    return best_action
+    return best_action if random.randint(0,100) > epsilon*100 else actions[random.randint(0,len(actions)-1)]
+
+def plot_peg_convergency(pegs_left):
+    x = np.arange(len(pegs_left))
+
+    plt.plot(x, pegs_left)
 
 
-A = Agent([4, False, [(2, 0)], 100, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
+A = Agent([5, True, [(2, 0)], 1000, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
 
 A.train()

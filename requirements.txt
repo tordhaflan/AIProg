@@ -1,3 +1,4 @@
+numpy
 networkx
 matplotlib
 pygame==1.9.6

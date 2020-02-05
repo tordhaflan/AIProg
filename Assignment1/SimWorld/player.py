@@ -1,8 +1,9 @@
-import copy, operator
+import copy
+import operator
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final, sort_color
+from Assignment1.SimWorld.board import Board, check_boundary, sort_color
 
 
 class Player:
@@ -84,7 +85,7 @@ class Player:
                 if element is not None and element.filled:
                     pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
-        return 1 if pegs_left == 1 else -pegs_left / self.initial_game.layers ** 2  # kanskje skrive om else for triangel
+        return (1,pegs_left) if pegs_left == 1 else (-pegs_left / self.initial_game.layers ** 2, pegs_left)  # kanskje skrive om else for triangel
 
     def update(self, num, G, actions, ax, fig):
         ax.clear()
@@ -142,7 +143,7 @@ class Player:
                     for x, y in peg.neighbours:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
-        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1), fargs=(G, actions, ax, fig), interval=3000,
+        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1), fargs=(G, actions, ax, fig), interval=1000,
                             repeat=False)
         plt.show()
 
