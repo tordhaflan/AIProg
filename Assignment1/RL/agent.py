@@ -1,9 +1,9 @@
-import random, copy
-
+import copy
+import random
 from Assignment1.RL.actor import Actor
 from Assignment1.RL.critic import Critic
+from Assignment1.SimWorld.board import Board
 from Assignment1.SimWorld.player import Player
-from Assignment1.SimWorld.board import Board, draw_board_final, draw_board
 
 
 class Agent:
@@ -43,7 +43,7 @@ class Agent:
                 actions = self.sim_world.get_moves()
                 if not self.critic.values.keys().__contains__(state):
                     self.critic.values[state] = random.randint(1, 10) / 100
-                    self.set_actor_values(state, actions)
+                    self.actor.set_values(state, actions)
                 action = get_best_action(self.actor.values, state, actions)
                 self.actor.eligibilities[state + action] = 1
                 self.critic.eligibilities[state] = 1
@@ -53,8 +53,10 @@ class Agent:
             previous_state = None
             previous_action = None
 
-            if (i == self.episodes - 1):
-                final_path = copy.deepcopy(path)
+            if i == self.episodes - 1:
+                final_path = []
+                for pair in path:
+                    final_path.append(pair[1])
 
             for j in range(len(path)):
                 state, action = path.pop()
@@ -73,23 +75,7 @@ class Agent:
                 previous_state = state
                 previous_action = action
 
-
-
-        """ 
-        if i % 100 == 0: print(i)
-        for state, action in final_path:
-            draw_board(self.sim_world.game, action[0], action[1])
-            self.sim_world.make_move(action)
-        draw_board_final(self.sim_world.game)
-        """
-        actions = []
-        for item in final_path:
-            actions.append(item[1])
-        self.sim_world.show_game(actions)
-
-    def set_actor_values(self, state, actions):
-        for action in actions:
-            self.actor.values[state + action] = 0
+        self.sim_world.show_game(final_path)
 
 
 def reset_eligibilities(actor, critic):
@@ -111,6 +97,6 @@ def get_best_action(actor_values, state, actions):
     return best_action
 
 
-A = Agent([4, True, [(2, 0)], 1000, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
+A = Agent([4, False, [(2, 0)], 100, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
 
 A.train()

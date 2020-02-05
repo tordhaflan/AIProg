@@ -3,12 +3,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final, sort_color
-import random
 
 
-class Player(object):
+class Player:
 
-    #Må skrives om slik at den tar inn parametere og lager et board objekt selv
+    # Må skrives om slik at den tar inn parametere og lager et board objekt selv
     def __init__(self, game=Board, open_cells=[]):
 
         self.initial_game = copy.deepcopy(game)
@@ -17,11 +16,11 @@ class Player(object):
         self.counter = 0
 
         self.game.set_open_cells(open_cells)
-        self.initial_game.set_open_cells(open_cells)#endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
+        self.initial_game.set_open_cells(open_cells)  # endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
 
     # ser for meg et move på formen [(0,0), (1,0),(2,0)]
     def make_move(self, move):
-        #game = self.game
+        # game = self.game
         start, jump, goal = move[0], move[1], move[2]
 
         if not is_legal_move(self.game, move):
@@ -58,7 +57,8 @@ class Player(object):
             for peg in row:
                 if peg is not None:
                     for r, c in self.move:
-                        move = [peg.coordinates, tuple(map(operator.add,peg.coordinates,r)), tuple(map(operator.add,peg.coordinates,c))]
+                        move = [peg.coordinates, tuple(map(operator.add, peg.coordinates, r)),
+                                tuple(map(operator.add, peg.coordinates, c))]
                         if is_legal_move(self.game, move):
                             moves.append(tuple(move))
         return moves
@@ -84,14 +84,14 @@ class Player(object):
                 if element is not None and element.filled:
                     pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
-        return 1 if pegs_left == 1 else -pegs_left/self.initial_game.layers**2 # kanskje skrive om else for triangel
+        return 1 if pegs_left == 1 else -pegs_left / self.initial_game.layers ** 2  # kanskje skrive om else for triangel
 
     def update(self, num, G, actions, ax, fig):
         ax.clear()
         color_map = {}
         border_color = {}
 
-        if self.counter == 0 or self.counter == len(actions)+1:
+        if self.counter == 0 or self.counter == len(actions) + 1:
             for b in self.game.board:
                 for i in range(len(b)):
                     peg = b[i]
@@ -103,7 +103,7 @@ class Player(object):
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
         else:
-            move = actions[self.counter-1]
+            move = actions[self.counter - 1]
             start = move[0]
             jump = move[1]
             for index, b in enumerate(self.game.board):
@@ -123,6 +123,7 @@ class Player(object):
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
             self.make_move(move)
+
         pos = nx.get_node_attributes(G, 'pos')
         color, border = sort_color(pos, color_map, border_color)
         nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax)
@@ -132,7 +133,6 @@ class Player(object):
     def show_game(self, actions):
         fig, ax = plt.subplots(figsize=(10, 8))
 
-        # build plot
         G = nx.Graph()
         for b in self.game.board:
             for i in range(len(b)):
@@ -142,11 +142,9 @@ class Player(object):
                     for x, y in peg.neighbours:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
-
-        ani = FuncAnimation(fig, self.update, frames=(len(actions)+1), fargs=(G, actions, ax, fig), interval=3000, repeat=False)
+        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1), fargs=(G, actions, ax, fig), interval=3000,
+                            repeat=False)
         plt.show()
-
-
 
 
 def legal_moves(diamond):
@@ -160,7 +158,6 @@ def legal_moves(diamond):
         moves.append([(1, 1), (2, 2)])
 
     return moves
-
 
 
 def is_legal_move(game, move):
@@ -231,42 +228,3 @@ def game_won(game):
         return True
 
     return False
-"""
-ayers = 8
-
-B = Board(layers)
-
-P = Player(B)
-
-if not B.diamond:
-    row = random.randint(0, layers - 1)
-    column = random.randint(0, row)
-    open_cell = (row, column)
-else:
-    open_cell = (random.randint(0, layers - 1), random.randint(0, layers - 1))
-
-P.game.board[open_cell[0]][open_cell[1]].filled = False
-
-draw_board_final(P.game)
-
-# print(more_moves_available(P.game))
-
-while more_moves_available(P.game):
-    r = random.randint(0, layers - 1)
-    c = random.randint(0, layers - 1)
-    peg = P.game.board[r][c]
-    if peg is not None:
-        neigh = peg.neighbours[random.randint(0, len(peg.neighbours) - 1)]
-        delta_r = neigh[0] - r
-        delta_c = neigh[1] - c
-        move = [(r, c), (r + delta_r, c + delta_c), (r + 2 * delta_r, c + 2 * delta_c)]
-        if is_legal_move(P.game, move):
-            draw_board(P.game, move[0], move[1])
-            P.make_move(move)
-
-draw_board_final(P.game)
-print(game_won(P.game))
-
-
-
-"""

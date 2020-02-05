@@ -8,6 +8,10 @@ class Actor:
         self.values = {}
         self.eligibilities = {}
 
+    def set_values(self, state, actions):
+        for action in actions:
+            self.values[state + action] = 0
+
     def change_value(self, state, action, delta):
         self.values[state + action] = self.values[state + action] \
                                     + self.learning_rate * delta * self.eligibilities[state + action]
