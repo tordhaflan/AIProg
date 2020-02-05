@@ -1,6 +1,8 @@
 import copy, operator
-
-from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from Assignment1.SimWorld.board import Board, check_boundary, draw_board, draw_board_final, sort_color
 import random
 
 
@@ -12,6 +14,7 @@ class Player(object):
         self.initial_game = copy.deepcopy(game)
         self.game = game
         self.move = legal_moves(self.game.diamond)
+        self.counter = 0
 
         self.game.set_open_cells(open_cells)
         self.initial_game.set_open_cells(open_cells)#endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
@@ -82,6 +85,67 @@ class Player(object):
                     pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
         return 1 if pegs_left == 1 else -pegs_left/self.initial_game.layers**2 # kanskje skrive om else for triangel
+
+    def update(self, num, G, actions, ax, fig):
+        ax.clear()
+        color_map = {}
+        border_color = {}
+
+        if self.counter == 0 or self.counter == len(actions)+1:
+            for b in self.game.board:
+                for i in range(len(b)):
+                    peg = b[i]
+                    if peg is not None:
+                        if peg.filled:
+                            color_map[peg.pegNumber] = 'darkblue'
+                            border_color[peg.pegNumber] = 'darkblue'
+                        else:
+                            color_map[peg.pegNumber] = 'white'
+                            border_color[peg.pegNumber] = 'grey'
+        else:
+            move = actions[self.counter-1]
+            start = move[0]
+            jump = move[1]
+            for index, b in enumerate(self.game.board):
+                for i in range(len(b)):
+                    peg = b[i]
+                    if peg is not None:
+                        if peg.coordinates == start:
+                            color_map[peg.pegNumber] = 'green'
+                            border_color[peg.pegNumber] = 'green'
+                        elif peg.coordinates == jump:
+                            color_map[peg.pegNumber] = 'darkred'
+                            border_color[peg.pegNumber] = 'darkred'
+                        elif peg.filled:
+                            color_map[peg.pegNumber] = 'darkblue'
+                            border_color[peg.pegNumber] = 'darkblue'
+                        else:
+                            color_map[peg.pegNumber] = 'white'
+                            border_color[peg.pegNumber] = 'grey'
+            self.make_move(move)
+        pos = nx.get_node_attributes(G, 'pos')
+        color, border = sort_color(pos, color_map, border_color)
+        nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax)
+        self.counter += 1
+        fig.canvas.set_window_title('Peg Solitaire - RL')
+
+    def show_game(self, actions):
+        fig, ax = plt.subplots(figsize=(10, 8))
+
+        # build plot
+        G = nx.Graph()
+        for b in self.game.board:
+            for i in range(len(b)):
+                peg = b[i]
+                if peg is not None:
+                    G.add_node(peg.pegNumber, pos=peg.drawing_coordinates)
+                    for x, y in peg.neighbours:
+                        G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
+
+
+        ani = FuncAnimation(fig, self.update, frames=(len(actions)+1), fargs=(G, actions, ax, fig), interval=3000, repeat=False)
+        plt.show()
+
 
 
 

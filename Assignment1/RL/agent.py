@@ -73,12 +73,19 @@ class Agent:
                 previous_state = state
                 previous_action = action
 
-            if i % 100 == 0: print(i)
 
+
+        """ 
+        if i % 100 == 0: print(i)
         for state, action in final_path:
             draw_board(self.sim_world.game, action[0], action[1])
             self.sim_world.make_move(action)
         draw_board_final(self.sim_world.game)
+        """
+        actions = []
+        for item in final_path:
+            actions.append(item[1])
+        self.sim_world.show_game(actions)
 
     def set_actor_values(self, state, actions):
         for action in actions:
@@ -104,6 +111,6 @@ def get_best_action(actor_values, state, actions):
     return best_action
 
 
-A = Agent([4, True, [(2, 0)], 5000, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
+A = Agent([4, True, [(2, 0)], 1000, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
 
 A.train()

@@ -106,6 +106,26 @@ def make_triangle(graph, layers, row, i, n):
     return graph, n
 
 
+def sort_color(pos, color_map, border_color):
+    new_map = []
+    new_border = []
+    for key in pos.keys():
+        new_map.append(color_map[key])
+        new_border.append(border_color[key])
+
+    return new_map, new_border
+
+
+def check_boundary(row, col, layers, diamond):
+    if row < 0 or col < 0:
+        return False
+    elif row >= layers or col >= layers:
+        return False
+    elif not diamond and col > row:
+        return False
+    return True
+
+
 def draw_board_final(board):
     G = nx.Graph()
     color_map = {}
@@ -161,21 +181,5 @@ def draw_board(board, start, jump):
     plt.show()
 
 
-def sort_color(pos, color_map, border_color):
-    new_map = []
-    new_border = []
-    for key in pos.keys():
-        new_map.append(color_map[key])
-        new_border.append(border_color[key])
-
-    return new_map, new_border
 
 
-def check_boundary(row, col, layers, diamond):
-    if row < 0 or col < 0:
-        return False
-    elif row >= layers or col >= layers:
-        return False
-    elif not diamond and col > row:
-        return False
-    return True
