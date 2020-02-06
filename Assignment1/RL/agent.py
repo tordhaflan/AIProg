@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ from Assignment1.RL.actor import Actor
 from Assignment1.RL.critic import Critic
 from Assignment1.SimWorld.board import Board
 from Assignment1.SimWorld.player import Player
+from Assignment1.RL.read import read_parameters_file
 
 
 class Agent:
@@ -19,12 +21,14 @@ class Agent:
         self.sim_world = Player(Board(parameters[0], parameters[1]), parameters[2])  # for now, player object
         self.episodes = parameters[3]
         self.layers = parameters[4]
-        self.initial_epsilon = parameters[5]
+        self.initial_epsilon = parameters[12]
+        self.type_of_RL = parameters[5]
         self.actor = Actor(parameters[6], parameters[7], parameters[8])
         self.critic = Critic(parameters[9], parameters[10], parameters[11])
 
         self.state_action = {}
         self.pegs_left = []
+        self.epsilon = copy.deepcopy(self.initial_epsilon)
         self.initial_state = self.sim_world.get_binary_board()  # tuple (converts playboard to a long tuple)
 
     def train(self):
@@ -37,7 +41,7 @@ class Agent:
             self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
                                                                                       self.critic.eligibilities)
 
-            action = get_best_action(self.actor.values, self.initial_state, initial_actions, self.initial_epsilon)
+            action = get_best_action(self.actor.values, self.initial_state, initial_actions, self.epsilon)
             path.append((self.initial_state, action))
             state = self.sim_world.do_move(action)
             while not self.sim_world.game_over():
@@ -45,7 +49,7 @@ class Agent:
                 if not self.critic.values.keys().__contains__(state):
                     self.critic.values[state] = random.randint(1, 10) / 100
                     self.actor.set_values(state, actions)
-                action = get_best_action(self.actor.values, state, actions, self.initial_epsilon)
+                action = get_best_action(self.actor.values, state, actions, self.epsilon)
                 self.actor.eligibilities[state + action] = 1
                 self.critic.eligibilities[state] = 1
                 path.append((state, action))
@@ -75,8 +79,35 @@ class Agent:
 
                 previous_state = state
                 previous_action = action
-        plot_peg_convergency(self.pegs_left)
-        self.sim_world.show_game(final_path)
+
+            if i % int(self.initial_epsilon*self.episodes) == 0:
+                print(i, self.epsilon)
+                self.epsilon -= self.initial_epsilon ** 2
+
+        print("Number of states visited:", len(self.actor.values.keys()))
+        #plot_peg_convergency(self.pegs_left)
+        self.sim_world.show_game(final_path, self.pegs_left)
+        print(self.epsilon)
+
+
+
+def main():
+    parameters = read_parameters_file()
+    layers = parameters[0]-1
+    diamond = parameters[1]
+    open_cells = []
+    if type(parameters[2]) is not list:
+        for i in range(parameters[2]):
+            r = random.randint(0, layers)
+            if diamond:
+                c = random.randint(0, layers)
+            else:
+                c = random.randint(0, r)
+            open_cells.append((r, c))
+        parameters[2] = open_cells
+    agent = Agent(parameters)
+    agent.train()
+
 
 def reset_eligibilities(actor, critic):
     for a in actor.keys():
@@ -99,9 +130,7 @@ def get_best_action(actor_values, state, actions, epsilon):
 def plot_peg_convergency(pegs_left):
     x = np.arange(len(pegs_left))
 
+    fig = plt.figure(num='Statistics over pegs left')
     plt.plot(x, pegs_left)
 
-
-A = Agent([5, True, [(2, 0)], 1000, None, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9])
-
-A.train()
+main()

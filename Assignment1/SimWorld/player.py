@@ -1,5 +1,6 @@
 import copy
 import operator
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -15,6 +16,7 @@ class Player:
         self.game = game
         self.move = legal_moves(self.game.diamond)
         self.counter = 0
+        self.pegs_left = 0
 
         self.game.set_open_cells(open_cells)
         self.initial_game.set_open_cells(open_cells)  # endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
@@ -79,16 +81,17 @@ class Player:
         return True  # Hva skal returneres?
 
     def get_reward(self):
-        pegs_left = 0
+        self.pegs_left = 0
         for row in self.game.board:
             for element in row:
                 if element is not None and element.filled:
-                    pegs_left += 1
+                    self.pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
-        return (1,pegs_left) if pegs_left == 1 else (-pegs_left / self.initial_game.layers ** 2, pegs_left)  # kanskje skrive om else for triangel
+        return (1,self.pegs_left) if self.pegs_left == 1 else (-self.pegs_left / self.initial_game.layers ** 2, self.pegs_left)  # kanskje skrive om else for triangel
 
-    def update(self, num, G, actions, ax, fig):
-        ax.clear()
+    def update(self, num, G, actions, ax1, ax2, fig, pegs_left):
+        if self.counter < len(actions) + 2:
+            ax1.clear()
         color_map = {}
         border_color = {}
 
@@ -103,7 +106,15 @@ class Player:
                         else:
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
-        else:
+            if self.pegs_left == 1 and self.counter == len(actions) + 1:
+                ax1.set_title("Congratulation - The RL made it")
+
+            elif self.counter == len(actions) + 1:
+                ax1.set_title("The RL failed")
+                ax1.change_geometry(1, 2, 1)
+
+
+        elif self.counter < len(actions) + 2:
             move = actions[self.counter - 1]
             start = move[0]
             jump = move[1]
@@ -125,14 +136,29 @@ class Player:
                             border_color[peg.pegNumber] = 'grey'
             self.make_move(move)
 
-        pos = nx.get_node_attributes(G, 'pos')
-        color, border = sort_color(pos, color_map, border_color)
-        nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax)
-        self.counter += 1
-        fig.canvas.set_window_title('Peg Solitaire - RL')
+        if self.counter == len(actions) + 2:
+            ax1.change_geometry(1, 2, 1)
+            ax1.set_title("Final board")
+            x = np.arange(len(pegs_left))
+            ax2.set_title("Statistics over pegs left")
+            ax2.set_xlabel("Episodes")
+            ax2.set_ylabel("Pegs left")
+            ax2.plot(x, pegs_left)
+            ax2.set_visible(True)
+        else:
+            pos = nx.get_node_attributes(G, 'pos')
+            color, border = sort_color(pos, color_map, border_color)
+            nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax1)
+            self.counter += 1
+            fig.canvas.set_window_title('Peg Solitaire - RL')
 
-    def show_game(self, actions):
-        fig, ax = plt.subplots(figsize=(10, 8))
+
+
+    def show_game(self, actions, pegs_left):
+        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(13, 11))
+        ax2.set_visible(False)
+        ax1.change_geometry(1, 1, 1)
+
 
         G = nx.Graph()
         for b in self.game.board:
@@ -143,8 +169,8 @@ class Player:
                     for x, y in peg.neighbours:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
-        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1), fargs=(G, actions, ax, fig), interval=1000,
-                            repeat=False)
+        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2), fargs=(G, actions, ax1, ax2, fig, pegs_left),
+                            interval=2000, repeat=False)
         plt.show()
 
 
