@@ -74,15 +74,15 @@ class Player:
                 if element is not None and element.filled:
                     self.pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
-        # TODO
-        # endre self.initial_game.layers ** 2 til antall pegs totalt, if triangle osv.
+        #TODO
+        # Endre self.initial_game.layers ** 2 til antall pegs totalt, if triangle osv.
         return (1,self.pegs_left) if self.pegs_left == 1 else (-self.pegs_left / self.initial_game.layers ** 2, self.pegs_left)  # kanskje skrive om else for triangel
 
     # Selve funksjonen som animerer spillet
-    def update(self, num, G, actions, ax1, ax2, fig, pegs_left):
+    def update(self, num, G, actions, ax1, ax2, ax3, fig, pegs_left):
         # resetter plottet
         if self.counter < len(actions) + 2:
-            ax1.clear()
+            ax2.clear()
         color_map = {}
         border_color = {}
 
@@ -99,12 +99,16 @@ class Player:
                         else:
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
-
+            if self.counter == 0:
+                pos = nx.get_node_attributes(G, 'pos')
+                color, border = sort_color(pos, color_map, border_color)
+                nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax1)
+                ax1.set_title("Initial board")
             # Tilbakemelding på spill på nest siste plot
             if self.pegs_left == 1 and self.counter == len(actions) + 1:
-                ax1.set_title("Congratulation - The RL made it")
+                ax2.set_title("Congratulation - The RL made it")
             elif self.counter == len(actions) + 1:
-                ax1.set_title("The RL failed")
+                ax2.set_title("The RL failed")
 
         # For alle andre ganger, bortsett fra siste, selve spillanimasjonen
         elif self.counter < len(actions) + 2:
@@ -131,31 +135,36 @@ class Player:
 
         # Plotting av siste spillbrett, halvere størrelse og vise plot av pegs_left
         if self.counter == len(actions) + 2:
-            ax1.change_geometry(1, 2, 1)
-            ax1.set_title("Final board")
+            ax1.change_geometry(2, 2, 1)
+            ax2.change_geometry(2, 2, 2)
+            ax3.change_geometry(2, 1, 2)
+            ax2.set_title("Final board")
             x = np.arange(len(pegs_left))
-            ax2.set_title("Statistics over pegs left")
-            ax2.set_xlabel("Episodes")
-            ax2.set_ylabel("Pegs left")
-            ax2.plot(x, pegs_left)
-            ax2.set_visible(True)
+            ax3.set_title("Development of RLs performance")
+            ax3.set_xlabel("Episodes")
+            ax3.set_ylabel("Pegs left")
+            ax3.plot(x, pegs_left)
+            ax3.set_visible(True)
+            ax1.set_visible(True)
 
         # Utfører selve endringer av grafen, sort_color for å endre peg-sortering til den nx liker
         # Den sorterte på en annen måte enn vi la de inn. Noe flipping av strukturen.
         else:
             pos = nx.get_node_attributes(G, 'pos')
             color, border = sort_color(pos, color_map, border_color)
-            nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax1)
+            nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax2)
             self.counter += 1
             fig.canvas.set_window_title('Peg Solitaire - RL')
 
     # Animasjon av spillet
     def show_game(self, actions, pegs_left):
         # Lager figuren og de 2 plotsene som kommer til slutt
-        fig, (ax1, ax2) = plt.subplots(1,2, figsize=(13, 11))
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 11.2))
         # Sjuler plot
-        ax2.set_visible(False)
-        ax1.change_geometry(1, 1, 1)
+        ax1.set_visible(False)
+        ax3.set_visible(False)
+        ax2.change_geometry(1, 1, 1)
+
 
         # Bygger strukturen til spillbrettet/grafen
         G = nx.Graph()
@@ -168,7 +177,7 @@ class Player:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
         # Animasjonen av spillet
-        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2), fargs=(G, actions, ax1, ax2, fig, pegs_left),
+        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2), fargs=(G, actions, ax1, ax2, ax3, fig, pegs_left),
                             interval=2000, repeat=False)
         plt.show()
 

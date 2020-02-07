@@ -95,7 +95,9 @@ class Agent:
                 previous_state = state
                 previous_action = action
 
-            # Endrer epsilon for å få mindre random
+            #TODO
+            # Forklare modulo
+            #Endrer epsilon for å få mindre random
             if i % int(self.initial_epsilon*self.episodes) == 0:
                 print(i, self.epsilon)
                 self.epsilon -= self.initial_epsilon ** 2
