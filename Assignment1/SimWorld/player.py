@@ -79,7 +79,7 @@ class Player:
         return (1,self.pegs_left) if self.pegs_left == 1 else (-self.pegs_left / self.initial_game.layers ** 2, self.pegs_left)  # kanskje skrive om else for triangel
 
     # Selve funksjonen som animerer spillet
-    def update(self, num, G, actions, ax1, ax2, ax3, fig, pegs_left):
+    def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, pegs_left, parameters):
         # resetter plottet
         if self.counter < len(actions) + 2:
             ax2.clear()
@@ -103,7 +103,7 @@ class Player:
                 pos = nx.get_node_attributes(G, 'pos')
                 color, border = sort_color(pos, color_map, border_color)
                 nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax1)
-                ax1.set_title("Initial board")
+                ax1.set_title("Initial board", fontweight='bold')
             # Tilbakemelding på spill på nest siste plot
             if self.pegs_left == 1 and self.counter == len(actions) + 1:
                 ax2.set_title("Congratulation - The RL made it")
@@ -135,17 +135,20 @@ class Player:
 
         # Plotting av siste spillbrett, halvere størrelse og vise plot av pegs_left
         if self.counter == len(actions) + 2:
-            ax1.change_geometry(2, 2, 1)
-            ax2.change_geometry(2, 2, 2)
+            ax1.change_geometry(2, 3, 1)
+            ax2.change_geometry(2, 3, 2)
             ax3.change_geometry(2, 1, 2)
-            ax2.set_title("Final board")
+            ax4.change_geometry(2, 3, 3)
+            ax2.set_title("Final board", fontweight='bold')
             x = np.arange(len(pegs_left))
-            ax3.set_title("Development of RLs performance")
-            ax3.set_xlabel("Episodes")
-            ax3.set_ylabel("Pegs left")
+            ax3.set_title("Development of RLs performance", fontweight='bold')
+            ax3.set_xlabel("Episodes", fontweight='semibold')
+            ax3.set_ylabel("Pegs left", fontweight='semibold')
             ax3.plot(x, pegs_left)
-            ax3.set_visible(True)
+            plot_parameters(ax4, parameters)
             ax1.set_visible(True)
+            ax3.set_visible(True)
+            ax4.set_visible(True)
 
         # Utfører selve endringer av grafen, sort_color for å endre peg-sortering til den nx liker
         # Den sorterte på en annen måte enn vi la de inn. Noe flipping av strukturen.
@@ -157,12 +160,13 @@ class Player:
             fig.canvas.set_window_title('Peg Solitaire - RL')
 
     # Animasjon av spillet
-    def show_game(self, actions, pegs_left):
+    def show_game(self, actions, pegs_left, parameters):
         # Lager figuren og de 2 plotsene som kommer til slutt
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 11.2))
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(20, 11.2))
         # Sjuler plot
         ax1.set_visible(False)
         ax3.set_visible(False)
+        ax4.set_visible(False)
         ax2.change_geometry(1, 1, 1)
 
 
@@ -177,8 +181,9 @@ class Player:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
         # Animasjonen av spillet
-        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2), fargs=(G, actions, ax1, ax2, ax3, fig, pegs_left),
-                            interval=2000, repeat=False)
+        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2),
+                            fargs=(G, actions, ax1, ax2, ax3, ax4, fig, pegs_left, parameters),
+                            interval=200, repeat=False)
         plt.show()
 
 
@@ -251,3 +256,22 @@ def more_moves_available(game):
                                 return True
 
     return False
+
+def plot_parameters(ax, parameters):
+    ax.text(0.05, 1, "Parameters:", fontsize=14, fontweight='bold')
+    ax.text(0.05, 0.9, ("Number of episodes: " + str(parameters[3])), fontsize=12)
+    ax.text(0.05, 0.8, ("Actor learning rate ($\u03B1_a$): " + str(parameters[6])), fontsize=12)
+    ax.text(0.05, 0.7, ("Actor eligibility decay rate ($\u03BB_a$): " + str(parameters[8])), fontsize=12)
+    ax.text(0.05, 0.6, ("Actor discount factor ($\u03B3_a$): " + str(parameters[10])), fontsize=12)
+    ax.text(0.05, 0.5, ("Critic learning rate ($\u03B1_c$): " + str(parameters[7])), fontsize=12)
+    ax.text(0.05, 0.4, ("Critic eligibility decay rate ($\u03BB_c$): " + str(parameters[9])), fontsize=12)
+    ax.text(0.05, 0.3, ("Critic discount factor ($\u03B3_c$): " + str(parameters[11])), fontsize=12)
+    ax.text(0.05, 0.2, ("Initial epsilon (\u03B5): " + str(parameters[12])), fontsize=12)
+    ax.text(0.05, 0.1, "Function approximation: ", fontsize=12)
+    if parameters[4] == 'table':
+        ax.text(0.525, 0.1, "Table", fontweight='semibold', fontsize=12)
+    else:
+        ax.text(0.525, 0.1, "Neural Network", fontweight='semibold', fontsize=12)
+        ax.text(0.05, 0, ("Layer structure-NN: " + str(parameters[5])), fontsize=12)
+
+    ax.axis('off')

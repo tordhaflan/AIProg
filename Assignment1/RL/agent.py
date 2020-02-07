@@ -26,6 +26,7 @@ class Agent:
         self.type_of_RL = parameters[5]
         self.actor = Actor(parameters[6], parameters[7], parameters[8])
         self.critic = Critic(parameters[9], parameters[10], parameters[11])
+        self.parameters = parameters
 
         self.state_action = {}
         self.pegs_left = []
@@ -103,7 +104,7 @@ class Agent:
                 self.epsilon -= self.initial_epsilon ** 2
 
         print("Number of states visited:", len(self.actor.values.keys()))
-        self.sim_world.show_game(final_path, self.pegs_left)
+        self.sim_world.show_game(final_path, self.pegs_left, self.parameters)
         print(self.epsilon)
 
 

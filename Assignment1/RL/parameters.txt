@@ -1,12 +1,12 @@
-Board size (e.g 3 or 5): 4
+Board size (e.g 3 or 5): 5
 
-Board type (diamond or triangle): diamond
+Board type (diamond or triangle): triangle
 
-Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(2,1)]
+Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(3,2)]
 
-Number of episodes (e.g 100 or 500): 5000
+Number of episodes (e.g 100 or 500): 1000
 
-Type of critic (table or neural network): table
+Type of critic (table or NN): table
 
 Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (16, 20, 20, 1)
 
@@ -22,4 +22,4 @@ Actor dicount factor (e.g 0.9): 0.95
 
 Critic dicsount factor (e.g 0.9): 0.95
 
-Initial epsilon value (e.g 0.1): 0.10
+Initial epsilon value (e.g 0.10 IMPORTANT TO WRITE ON 10-digit base): 0.10
