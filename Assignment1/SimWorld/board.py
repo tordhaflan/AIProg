@@ -4,13 +4,14 @@ from Assignment1.SimWorld.peg import Peg
 
 
 class Board(object):
-
+    # Init Board-objekt
     def __init__(self, layers=3, diamond=False):
         self.layers = layers
         self.diamond = diamond
         self.board = make_graph(self.layers, self.diamond)
         self.set_neighbours()
 
+    # setter naboer
     def set_neighbours(self):
         for i in range(self.layers):
             for j in range(self.layers):
@@ -18,6 +19,7 @@ class Board(object):
                     n = self.find_neighbourhood(i, j)
                     self.board[i][j].set_neighbours(n)
 
+    # Finner naboer av en peg
     def find_neighbourhood(self, row, col):
         neighbourhood = []
         for i in range(6):
@@ -42,11 +44,13 @@ class Board(object):
 
         return neighbourhood
 
+    # For å initiere boardet
     def set_open_cells(self, open_cells):
-        for r,c in open_cells:
+        for r, c in open_cells:
             self.board[r][c].filled = False
 
 
+# For å lage brettet, returnerer en liste av peg-objekter
 def make_graph(layers, diamond):
     if diamond:
         row = 2 * layers - 1
@@ -106,6 +110,7 @@ def make_triangle(graph, layers, row, i, n):
     return graph, n
 
 
+# Sorterer noder slik grafen vil ha det
 def sort_color(pos, color_map, border_color):
     new_map = []
     new_border = []
@@ -116,6 +121,7 @@ def sort_color(pos, color_map, border_color):
     return new_map, new_border
 
 
+# Sjekker om koordinater ligger utenfor grafen
 def check_boundary(row, col, layers, diamond):
     if row < 0 or col < 0:
         return False
@@ -126,7 +132,8 @@ def check_boundary(row, col, layers, diamond):
     return True
 
 
-def draw_board_final(board):
+# Har i bakhånd for å ha mulighet til å displaye et board
+def draw_board(board):
     G = nx.Graph()
     color_map = {}
     border_color = {}
@@ -148,38 +155,3 @@ def draw_board_final(board):
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, with_labels=False)
     plt.show()
-
-
-def draw_board(board, start, jump):
-    G = nx.Graph()
-    color_map = {}
-    border_color = {}
-    for index, b in enumerate(board.board):
-        for i in range(len(b)):
-            peg = b[i]
-            if peg is not None:
-                G.add_node(peg.pegNumber, pos=peg.drawing_coordinates)
-                if peg.coordinates == start:
-                    color_map[peg.pegNumber] = 'green'
-                    border_color[peg.pegNumber] = 'green'
-                elif peg.coordinates == jump:
-                    color_map[peg.pegNumber] = 'darkred'
-                    border_color[peg.pegNumber] = 'darkred'
-                elif peg.filled:
-                    color_map[peg.pegNumber] = 'darkblue'
-                    border_color[peg.pegNumber] = 'darkblue'
-                else:
-                    color_map[peg.pegNumber] = 'white'
-                    border_color[peg.pegNumber] = 'grey'
-
-                for x, y in peg.neighbours:
-                    G.add_edge(peg.pegNumber, board.board[x][y].pegNumber)
-
-    pos = nx.get_node_attributes(G, 'pos')
-    color, border = sort_color(pos, color_map, border_color)
-    nx.draw_networkx(G, pos, node_color=color, edgecolors=border, with_labels=False)
-    plt.show()
-
-
-
-

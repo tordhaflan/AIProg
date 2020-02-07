@@ -10,8 +10,10 @@ from Assignment1.SimWorld.board import Board, check_boundary, sort_color
 class Player:
 
     # Må skrives om slik at den tar inn parametere og lager et board objekt selv
+    # Init Player-object
     def __init__(self, game=Board, open_cells=[]):
 
+        # Kopi av inital game for å bruke til å vise fram
         self.initial_game = copy.deepcopy(game)
         self.game = game
         self.move = legal_moves(self.game.diamond)
@@ -21,26 +23,7 @@ class Player:
         self.game.set_open_cells(open_cells)
         self.initial_game.set_open_cells(open_cells)  # endres når vi initialiserer player objektet med et board -> sendes da som en inputverdi
 
-    # ser for meg et move på formen [(0,0), (1,0),(2,0)]
-    def make_move(self, move):
-        # game = self.game
-        start, jump, goal = move[0], move[1], move[2]
-
-        if not is_legal_move(self.game, move):
-            return False  # Kanskje bare returnere brettet uten å gjøre move?
-
-        self.game.board[start[0]][start[1]].filled = False
-        self.game.board[jump[0]][jump[1]].filled = False
-        self.game.board[goal[0]][goal[1]].filled = True
-
-        if not more_moves_available(self.game):
-            if game_won(self.game):
-                return 1  # Hva skal returneres?
-            else:
-                return 0  # Hva hvis spillet er ferdig, men ikke vunnet?
-
-        return self.game
-
+    # Bruker binær tuppelliste i alle utregninger.
     def get_binary_board(self):
         board = []
         for row in self.game.board:
@@ -53,19 +36,21 @@ class Player:
                     board.append(0)
         return tuple(board)
 
+    # Hente alle lovlige moves
+    # Tuple map for å legge sammen peg og jump/end
     def get_moves(self):
         moves = []
-        check = [(3, 3), (2, 2), (1, 1)]
         for row in self.game.board:
             for peg in row:
                 if peg is not None:
-                    for r, c in self.move:
-                        move = [peg.coordinates, tuple(map(operator.add, peg.coordinates, r)),
-                                tuple(map(operator.add, peg.coordinates, c))]
+                    for jump, end in self.move:
+                        move = [peg.coordinates, tuple(map(operator.add, peg.coordinates, jump)),
+                                tuple(map(operator.add, peg.coordinates, end))]
                         if is_legal_move(self.game, move):
                             moves.append(tuple(move))
         return moves
 
+    # Selve utførelsen av et move
     def do_move(self, move):
         start, jump, goal = move[0], move[1], move[2]
 
@@ -75,11 +60,13 @@ class Player:
 
         return self.get_binary_board()
 
+    # Sjekke om det er lovlige moves igjen
     def game_over(self):
         if more_moves_available(self.game):
             return False
-        return True  # Hva skal returneres?
+        return True
 
+    # Gir 1 i reward dersom game won, ellers negativ pegs_left/antall pegs
     def get_reward(self):
         self.pegs_left = 0
         for row in self.game.board:
@@ -87,14 +74,20 @@ class Player:
                 if element is not None and element.filled:
                     self.pegs_left += 1
         self.game = copy.deepcopy(self.initial_game)
+        # TODO
+        # endre self.initial_game.layers ** 2 til antall pegs totalt, if triangle osv.
         return (1,self.pegs_left) if self.pegs_left == 1 else (-self.pegs_left / self.initial_game.layers ** 2, self.pegs_left)  # kanskje skrive om else for triangel
 
+    # Selve funksjonen som animerer spillet
     def update(self, num, G, actions, ax1, ax2, fig, pegs_left):
+        # resetter plottet
         if self.counter < len(actions) + 2:
             ax1.clear()
         color_map = {}
         border_color = {}
 
+        # Viser kun startrettet første gang og nest siste gang
+        # Fargelegger pegs
         if self.counter == 0 or self.counter == len(actions) + 1:
             for b in self.game.board:
                 for i in range(len(b)):
@@ -106,14 +99,14 @@ class Player:
                         else:
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
+
+            # Tilbakemelding på spill på nest siste plot
             if self.pegs_left == 1 and self.counter == len(actions) + 1:
                 ax1.set_title("Congratulation - The RL made it")
-
             elif self.counter == len(actions) + 1:
                 ax1.set_title("The RL failed")
-                ax1.change_geometry(1, 2, 1)
 
-
+        # For alle andre ganger, bortsett fra siste, selve spillanimasjonen
         elif self.counter < len(actions) + 2:
             move = actions[self.counter - 1]
             start = move[0]
@@ -134,8 +127,9 @@ class Player:
                         else:
                             color_map[peg.pegNumber] = 'white'
                             border_color[peg.pegNumber] = 'grey'
-            self.make_move(move)
+            self.do_move(move)
 
+        # Plotting av siste spillbrett, halvere størrelse og vise plot av pegs_left
         if self.counter == len(actions) + 2:
             ax1.change_geometry(1, 2, 1)
             ax1.set_title("Final board")
@@ -145,6 +139,9 @@ class Player:
             ax2.set_ylabel("Pegs left")
             ax2.plot(x, pegs_left)
             ax2.set_visible(True)
+
+        # Utfører selve endringer av grafen, sort_color for å endre peg-sortering til den nx liker
+        # Den sorterte på en annen måte enn vi la de inn. Noe flipping av strukturen.
         else:
             pos = nx.get_node_attributes(G, 'pos')
             color, border = sort_color(pos, color_map, border_color)
@@ -152,14 +149,15 @@ class Player:
             self.counter += 1
             fig.canvas.set_window_title('Peg Solitaire - RL')
 
-
-
+    # Animasjon av spillet
     def show_game(self, actions, pegs_left):
+        # Lager figuren og de 2 plotsene som kommer til slutt
         fig, (ax1, ax2) = plt.subplots(1,2, figsize=(13, 11))
+        # Sjuler plot
         ax2.set_visible(False)
         ax1.change_geometry(1, 1, 1)
 
-
+        # Bygger strukturen til spillbrettet/grafen
         G = nx.Graph()
         for b in self.game.board:
             for i in range(len(b)):
@@ -169,11 +167,13 @@ class Player:
                     for x, y in peg.neighbours:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
+        # Animasjonen av spillet
         ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2), fargs=(G, actions, ax1, ax2, fig, pegs_left),
                             interval=2000, repeat=False)
         plt.show()
 
 
+# Koordinater til naboer og naboer av naboer av en peg
 def legal_moves(diamond):
     moves = [[(-1, 0), (-2, 0)], [(1, 0), (2, 0)], [(0, -1), (0, -2)], [(0, 1), (0, 2)]]
 
@@ -187,6 +187,7 @@ def legal_moves(diamond):
     return moves
 
 
+# Sjekke om et move er lovlig
 def is_legal_move(game, move):
     start, jump, end = move[0], move[1], move[2]
 
@@ -204,6 +205,7 @@ def is_legal_move(game, move):
     return True
 
 
+# Sjekke om et punkt har en peg som er filled
 def is_filled(game, coordinates):
     if game.board[coordinates[0]][coordinates[1]].filled:
         return True
@@ -211,6 +213,7 @@ def is_filled(game, coordinates):
     return False
 
 
+# Sjekke om de ligger på linje
 def is_on_line(start, jump, end):
     delta_row = jump[0] - start[0]
     delta_column = jump[1] - start[1]
@@ -220,6 +223,7 @@ def is_on_line(start, jump, end):
     return False
 
 
+# Sjekke om det går an å gjøre flere moves
 def more_moves_available(game):
     # Iterere over alle pegs i boardet:
     rows = game.layers
@@ -236,22 +240,5 @@ def more_moves_available(game):
                         if check_boundary(end_row, end_column, game.layers, game.diamond):
                             if not game.board[end_row][end_column].filled:
                                 return True
-
-    return False
-
-
-def game_won(game):
-    # Iterere over alle pegs i boardet:
-    amount_filled = 0
-    rows = game.layers
-    columns = rows
-    for row in range(0, rows):
-        for column in range(0, columns):
-            if check_boundary(row, column, game.layers, game.diamond):
-                if game.board[row][column].filled:
-                    amount_filled += 1
-
-    if amount_filled == 1:
-        return True
 
     return False
