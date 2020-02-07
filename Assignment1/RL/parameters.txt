@@ -2,7 +2,7 @@ Board size (e.g 3 or 5): 5
 
 Board type (diamond or triangle): triangle
 
-Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(1,1)]
+Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): 2
 
 Number of episodes (e.g 100 or 500): 1000
 
