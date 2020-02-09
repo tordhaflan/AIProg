@@ -1,8 +1,8 @@
-Board size (e.g 3 or 5): 5
+Board size (e.g 3 or 5): 4
 
-Board type (diamond or triangle): triangle
+Board type (diamond or triangle): diamond
 
-Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(3,2)]
+Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(2,1)]
 
 Number of episodes (e.g 100 or 500): 1000
 
@@ -18,8 +18,8 @@ Actor eligibility decay rate (e.g 0.9): 0.95
 
 Critic eligibility decay rate (e.g 0.9): 0.95
 
-Actor dicount factor (e.g 0.9): 0.95
+Actor discount factor (e.g 0.9): 0.95
 
-Critic dicsount factor (e.g 0.9): 0.95
+Critic discount factor (e.g 0.9): 0.95
 
 Initial epsilon value (e.g 0.10 IMPORTANT TO WRITE ON 10-digit base): 0.10

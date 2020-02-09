@@ -1,7 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
-
+# Not in usage
 def drawGraph(layers=3, diamond=False):
     G = nx.Graph()
 

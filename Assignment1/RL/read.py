@@ -1,5 +1,12 @@
 
+# Reads parapeters.txt to return parameters for the agent.
 def read_parameters_file():
+
+    """
+    :return: param: [size, board_type, open_cells, episodes, layers, initial_epsilon,
+                            actor_learning_rate, actor_eligibility_rate, actor_discount_factor,
+                            critic_learning_rate, critic_eligibility_rate, critic_discount_factor]
+    """
 
     f = open("parameters.txt", "r")
 
