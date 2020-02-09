@@ -39,11 +39,21 @@ class Agent:
         #  Initialize state
         self.critic.values[self.initial_state] = random.randint(1, 10) / 100
         initial_actions = self.sim_world.get_moves()
+        if len(initial_actions) == 0:
+            self.sim_world.show_game(None, None, self.parameters, False)
+            return
         self.actor.set_values(self.initial_state, initial_actions)
 
         #  For each episode
         for i in range(self.episodes):
             path = []
+
+            #TODO
+            # Forklare modulo
+            # Updates randomness factor over the course of episodes. Less randomness in later episodes, zero in last
+            if i % int(self.initial_epsilon * self.episodes) == 0 and i != 0 or i == self.episodes - 1:
+                self.epsilon -= self.initial_epsilon ** 2
+                print(i+1, int(np.ceil(self.epsilon * 100)))
 
             #  Set e to 0. Set to 1 later if state is visited
             self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
@@ -98,15 +108,9 @@ class Agent:
                 previous_state = state
                 previous_action = action
 
-            #TODO
-            # Forklare modulo
-            # Updates randomness factor over the course of episodes. Less randomness in later episodes
-            if i % int(self.initial_epsilon*self.episodes) == 0:
-                print(i, self.epsilon)
-                self.epsilon -= self.initial_epsilon ** 2
 
         print("Number of states visited:", len(self.actor.values.keys()))
-        self.sim_world.show_game(final_path, self.pegs_left, self.parameters)
+        self.sim_world.show_game(final_path, self.pegs_left, self.parameters, True)
         print(self.epsilon)
 
 
@@ -154,7 +158,7 @@ def get_best_action(actor_values, state, actions, epsilon):
         if actor_values[state + action] >= value:
             best_action = action
             value = actor_values[state + action]
-    return best_action if random.randint(0, 100) > epsilon*100 else actions[random.randint(0, len(actions)-1)]
+    return best_action if random.randint(0, 100) > np.ceil(epsilon*100) else actions[random.randint(0, len(actions)-1)]
 
 
 main()

@@ -20,6 +20,7 @@ class Player:
         self.counter = 0
         self.pegs_left = 0
         self.game.set_open_cells(open_cells)
+        self.open_cells = open_cells
 
         # Copy of initial board-object for visualization purposes
         self.initial_game = copy.deepcopy(self.game)
@@ -167,8 +168,50 @@ class Player:
             self.counter += 1
             fig.canvas.set_window_title('Peg Solitaire - RL')
 
+    # Plot if the game has no legal initial moves
+    def show_illegal_game(self, G, actions, ax1, ax2, ax3, ax4, fig, parameters):
+        color_map = {}
+        border_color = {}
+        for b in self.game.board:
+            for i in range(len(b)):
+                peg = b[i]
+                if peg is not None:
+                    if peg.filled:
+                        color_map[peg.pegNumber] = 'darkblue'
+                        border_color[peg.pegNumber] = 'darkblue'
+                    else:
+                        color_map[peg.pegNumber] = 'white'
+                        border_color[peg.pegNumber] = 'grey'
+
+        pos = nx.get_node_attributes(G, 'pos')
+        color, border = sort_color(pos, color_map, border_color)
+        nx.draw_networkx(G, pos=pos, node_color=color, edgecolors=border, with_labels=False, ax=ax1)
+        ax1.set_title("Initial board", fontweight='bold')
+
+        length = len(self.open_cells)
+
+        for i, x in enumerate(self.open_cells):
+            row = 1/(length+1)
+            if i == 0:
+                ax2.text(0, 1 - row, "Open cell" + (": " + str(x) if length == 1 else "s: " + str(x)),
+                         fontweight='bold', fontsize=24)
+            else:
+                ax2.text(0.505, 1 - (row*(i+1)), str(x), fontweight='bold', fontsize=24)
+        ax2.axis('off')
+        ax3.text(0.3, 0.5, "This bord has no initial move", fontweight='bold', fontsize=24)
+        ax3.axis('off')
+        plot_parameters(ax4, parameters)
+
+        ax1.change_geometry(2, 3, 1)
+        ax2.change_geometry(2, 3, 2)
+        ax3.change_geometry(2, 1, 2)
+        ax4.change_geometry(2, 3, 3)
+        ax1.set_visible(True)
+        ax3.set_visible(True)
+        ax4.set_visible(True)
+
     # Animating the game
-    def show_game(self, actions, pegs_left, parameters):
+    def show_game(self, actions, pegs_left, parameters, legal_game):
         # Making the plots shown in the end
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(20, 11.2))
         # Hiding them until last plot
@@ -187,11 +230,16 @@ class Player:
                     for x, y in peg.neighbours:
                         G.add_edge(peg.pegNumber, self.game.board[x][y].pegNumber)
 
-        # The animation of the game
-        ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2),
+        # The animation of the game, if there is a legal first move
+        if legal_game:
+            ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2),
                             fargs=(G, actions, ax1, ax2, ax3, ax4, fig, pegs_left, parameters),
                             interval=200, repeat=False)
+        else:
+            self.show_illegal_game(G, actions, ax1, ax2, ax3, ax4, fig, parameters)
         plt.show()
+
+
 
 
 # Finding coordinates of possible moves
@@ -275,18 +323,18 @@ def more_moves_available(game):
 def plot_parameters(ax, parameters):
     ax.text(0.05, 1, "Parameters:", fontsize=14, fontweight='bold')
     ax.text(0.05, 0.9, ("Number of episodes: " + str(parameters[3])), fontsize=12)
-    ax.text(0.05, 0.8, ("Actor learning rate ($\u03B1_a$): " + str(parameters[6])), fontsize=12)
-    ax.text(0.05, 0.7, ("Actor eligibility decay rate ($\u03BB_a$): " + str(parameters[8])), fontsize=12)
-    ax.text(0.05, 0.6, ("Actor discount factor ($\u03B3_a$): " + str(parameters[10])), fontsize=12)
-    ax.text(0.05, 0.5, ("Critic learning rate ($\u03B1_c$): " + str(parameters[7])), fontsize=12)
-    ax.text(0.05, 0.4, ("Critic eligibility decay rate ($\u03BB_c$): " + str(parameters[9])), fontsize=12)
-    ax.text(0.05, 0.3, ("Critic discount factor ($\u03B3_c$): " + str(parameters[11])), fontsize=12)
-    ax.text(0.05, 0.2, ("Initial epsilon (\u03B5): " + str(parameters[12])), fontsize=12)
-    ax.text(0.05, 0.1, "Function approximation: ", fontsize=12)
+    ax.text(0.05, 0.8, ("Initial epsilon (\u03B5): " + str(parameters[12])), fontsize=12)
+    ax.text(0.05, 0.7, ("Actor - learning rate ($\u03B1_a$): " + str(parameters[6])), fontsize=12)
+    ax.text(0.05, 0.6, ("Actor - eligibility decay rate ($\u03BB_a$): " + str(parameters[8])), fontsize=12)
+    ax.text(0.05, 0.5, ("Actor - discount factor ($\u03B3_a$): " + str(parameters[10])), fontsize=12)
+    ax.text(0.05, 0.4, ("Critic - learning rate ($\u03B1_c$): " + str(parameters[7])), fontsize=12)
+    ax.text(0.05, 0.3, ("Critic - eligibility decay rate ($\u03BB_c$): " + str(parameters[9])), fontsize=12)
+    ax.text(0.05, 0.2, ("Critic - discount factor ($\u03B3_c$): " + str(parameters[11])), fontsize=12)
+    ax.text(0.05, 0.1, "Type of critic: ", fontsize=12)
     if parameters[4] == 'table':
-        ax.text(0.525, 0.1, "Table", fontweight='semibold', fontsize=12)
+        ax.text(0.325, 0.1, "Table", fontweight='semibold', fontsize=12)
     else:
-        ax.text(0.525, 0.1, "Neural Network", fontweight='semibold', fontsize=12)
+        ax.text(0.325, 0.1, "Neural Network", fontweight='semibold', fontsize=12)
         ax.text(0.05, 0, ("Layer structure-NN: " + str(parameters[5])), fontsize=12)
 
     ax.axis('off')
