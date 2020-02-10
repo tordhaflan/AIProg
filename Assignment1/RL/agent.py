@@ -1,12 +1,13 @@
 import copy
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+from keras.models import Sequential
+from keras.layers import Dense
 from Assignment1.RL.actor import Actor
 from Assignment1.RL.critic import Critic
-from Assignment1.SimWorld.board import Board
 from Assignment1.SimWorld.player import Player
 from Assignment1.RL.read import read_parameters_file
+from Assignment1.RL.SplitGD import SplitGD
 
 
 class Agent:
@@ -14,16 +15,16 @@ class Agent:
     #  Initialize Agent-object with parameters
     def __init__(self, parameters):
         """
-        :param parameters: [size, board_type, open_cells, episodes, layers, initial_epsilon,
+        :param parameters: [size, board_type, open_cells, episodes, layers_NN, initial_epsilon,
                             actor_learning_rate, actor_eligibility_rate, actor_discount_factor,
                             critic_learning_rate, critic_eligibility_rate, critic_discount_factor]
         """
 
         self.sim_world = Player(parameters[0], parameters[1], parameters[2])
         self.episodes = parameters[3]
-        self.layers = parameters[4]
+        self.layers_NN = parameters[5]
         self.initial_epsilon = parameters[12]
-        self.type_of_RL = parameters[5]
+        self.table_critic = parameters[4]
         self.actor = Actor(parameters[6], parameters[7], parameters[8])
         self.critic = Critic(parameters[9], parameters[10], parameters[11])
         self.parameters = parameters
@@ -32,6 +33,8 @@ class Agent:
         self.pegs_left = []
         self.epsilon = copy.deepcopy(self.initial_epsilon)
         self.initial_state = self.sim_world.get_binary_board()  # tuple (converts playboard to a long tuple)
+        if not self.table_critic:
+            self.model = self.build_model()
 
     #  The learning process itself. Taken from pseudo-code in actor-critic.pdf
     def train(self):
@@ -113,6 +116,18 @@ class Agent:
         self.sim_world.show_game(final_path, self.pegs_left, self.parameters, True)
         print(self.epsilon)
 
+    def build_model(self):
+        model = Sequential()
+
+        # Input layer to the model:
+        model.add(Dense(self.layers_NN[0], input_shape=(self.parameters[0]**2,), activation='relu'))
+
+        for i in range(1, len(self.layers_NN)):
+            model.add(Dense(self.layers_NN[i], activation='relu'))
+
+        return SplitGD(model)
+
+
 
 # Runs and trains the agent
 def main():
@@ -130,7 +145,7 @@ def main():
             open_cells.append((r, c))
         parameters[2] = open_cells
     agent = Agent(parameters)
-    agent.train()
+    #agent.train()
 
 
 # Set e to 0.

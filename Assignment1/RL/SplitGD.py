@@ -17,7 +17,8 @@ class SplitGD():
         self.model = keras_model
 
     # Subclass this with something useful.
-    def modify_gradients(self,gradients):   return gradients
+    def modify_gradients(self,gradients):
+        return gradients
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor.

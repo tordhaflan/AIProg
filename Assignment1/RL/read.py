@@ -38,6 +38,10 @@ def read_parameters_file():
                 s = False
             elif s == "diamond":
                 s = True
+            elif s == "table":
+                s = True
+            elif s == "NN":
+                s = False
 
             param.append(s)
 
