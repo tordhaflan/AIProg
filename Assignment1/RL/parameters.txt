@@ -6,7 +6,7 @@ Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(2,1)]
 
 Number of episodes (e.g 100 or 500): 500
 
-Type of critic (table or NN): NN
+Type of critic (table or NN): table
 
 Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (16, 20, 1)
 

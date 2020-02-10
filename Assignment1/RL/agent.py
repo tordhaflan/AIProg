@@ -30,7 +30,7 @@ class Agent:
         self.parameters = parameters
 
         self.state_action = {}
-        self.pegs_left = []
+        self.random_episodes = {}
         self.epsilon = copy.deepcopy(self.initial_epsilon)
         self.initial_state = self.sim_world.get_binary_board()  # tuple (converts playboard to a long tuple)
         if not self.table_critic:
@@ -54,15 +54,16 @@ class Agent:
             #TODO
             # Forklare modulo
             # Updates randomness factor over the course of episodes. Less randomness in later episodes, zero in last
-            if i % int(self.initial_epsilon * self.episodes) == 0 and i != 0 or i == self.episodes - 1:
-                self.epsilon -= self.initial_epsilon ** 2
-                print(i+1, int(np.ceil(self.epsilon * 100)))
+            if self.initial_epsilon != 0:
+                if i % int(self.initial_epsilon * self.episodes) == 0 and i != 0 or i == self.episodes - 1:
+                    self.epsilon -= self.initial_epsilon ** 2
+                    print(i+1, self.epsilon)
 
             #  Set e to 0. Set to 1 later if state is visited
             self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
                                                                                       self.critic.eligibilities)
             # First move
-            action = get_best_action(self.actor.values, self.initial_state, initial_actions, self.epsilon)
+            action, self.random_episodes = get_best_action(self.actor.values, self.initial_state, initial_actions, self.epsilon, self.random_episodes, i)
             path.append((self.initial_state, action))
             state = self.sim_world.do_move(action)
 
@@ -72,7 +73,7 @@ class Agent:
                 if not self.critic.values.keys().__contains__(state):
                     self.critic.values[state] = random.randint(1, 10) / 100
                     self.actor.set_values(state, actions)
-                action = get_best_action(self.actor.values, state, actions, self.epsilon)
+                action, self.random_episodes = get_best_action(self.actor.values, state, actions, self.epsilon, self.random_episodes, i)
                 self.actor.eligibilities[state + action] = 1
                 self.critic.eligibilities[state] = 1
                 path.append((state, action))
@@ -94,11 +95,11 @@ class Agent:
 
                 # Reward to final state
                 if j == 0:
-                    reward, pegs_left = self.sim_world.get_reward()
-                    self.pegs_left.append(pegs_left)
+                    reward = self.sim_world.get_reward(j)
 
                 # Discounted reward for other states
                 else:
+                    #reward = self.sim_world.get_reward(j)
                     reward = 0
                     self.critic.update_eligibility(state, previous_state)
                     self.actor.update_eligibility(state, action, previous_state, previous_action)
@@ -113,7 +114,7 @@ class Agent:
 
 
         print("Number of states visited:", len(self.actor.values.keys()))
-        self.sim_world.show_game(final_path, self.pegs_left, self.parameters, True)
+        self.sim_world.show_game(final_path, self.parameters, True, self.random_episodes)
         print(self.epsilon)
 
     def build_model(self):
@@ -145,7 +146,7 @@ def main():
             open_cells.append((r, c))
         parameters[2] = open_cells
     agent = Agent(parameters)
-    #agent.train()
+    agent.train()
 
 
 # Set e to 0.
@@ -159,7 +160,7 @@ def reset_eligibilities(actor, critic):
 
 
 # Finds the best next action for a given state. Initialize with first possible action to avoid None-move.
-def get_best_action(actor_values, state, actions, epsilon):
+def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
     """
     :param actor_values: SAP-values
     :param state: Current state
@@ -173,7 +174,12 @@ def get_best_action(actor_values, state, actions, epsilon):
         if actor_values[state + action] >= value:
             best_action = action
             value = actor_values[state + action]
-    return best_action if random.randint(0, 100) > np.ceil(epsilon*100) else actions[random.randint(0, len(actions)-1)]
+    randomness = random.randint(1, 100) > np.ceil(epsilon*100)
+    if not randomness:
+        random_moves[i] = 1
+        return actions[random.randint(0, len(actions)-1)], random_moves
+    else:
+        return best_action, random_moves
 
 
 main()

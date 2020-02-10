@@ -18,7 +18,7 @@ class Player:
         self.game = Board(layers, diamond)
         self.move = legal_moves(self.game.diamond)
         self.counter = 0
-        self.pegs_left = 0
+        self.pegs_left = []
         self.game.set_open_cells(open_cells)
         self.open_cells = open_cells
 
@@ -70,26 +70,27 @@ class Player:
 
     # Returns a reward of 1 if only 1 peg left. Else a negative reward of pegs left divided by
     # total pegs on the initial board
-    def get_reward(self):
-        self.pegs_left = 0
+    def get_reward(self, first):
+        pegs_left = 0
         for row in self.game.board:
             for element in row:
                 if element is not None and element.filled:
-                    self.pegs_left += 1
+                    pegs_left += 1
 
         # For visualization purposes
-        self.game = copy.deepcopy(self.initial_game)
+        if first == 0:
+            self.pegs_left.append(pegs_left)
+            self.game = copy.deepcopy(self.initial_game)
 
         # If triangle, different number of original pegs than if diamond
         if not self.game.diamond:
-            reward = -self.pegs_left / (((self.initial_game.layers ** 2)/2) + (self.initial_game.layers / 2))
-            return (1, self.pegs_left) if self.pegs_left == 1 else (reward, self.pegs_left)
+            reward = -pegs_left / (((self.initial_game.layers ** 2) / 2) + (self.initial_game.layers / 2))
         else:
-            return (1, self.pegs_left) if self.pegs_left == 1 else (
-                    -self.pegs_left / self.initial_game.layers ** 2, self.pegs_left)
+            reward = -pegs_left / self.initial_game.layers ** 2
+        return 1 if pegs_left == 1 else reward
 
     # The function that updates the board.
-    def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, pegs_left, parameters):
+    def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):
         # Resetting the plot.
         if self.counter < len(actions) + 2:
             ax2.clear()
@@ -115,7 +116,7 @@ class Player:
                 ax1.set_title("Initial board", fontweight='bold')
 
             # Feedback on the second last plot
-            if self.pegs_left == 1 and self.counter == len(actions) + 1:
+            if self.pegs_left[-1] == 1 and self.counter == len(actions) + 1:
                 ax2.set_title("Congratulation - The RL made it")
             elif self.counter == len(actions) + 1:
                 ax2.set_title("The RL failed")
@@ -150,11 +151,14 @@ class Player:
             ax3.change_geometry(2, 1, 2)
             ax4.change_geometry(2, 3, 3)
             ax2.set_title("Final board", fontweight='bold')
-            x = np.arange(len(pegs_left))
+            for x in random_episodes.keys():
+                random_episodes[x] = self.pegs_left[x]
+            ax3.scatter(random_episodes.keys(), random_episodes.values(), marker = 'o', color='red', s=2)
+            x = np.arange(len(self.pegs_left))
             ax3.set_title("Development of RLs performance", fontweight='bold')
             ax3.set_xlabel("Episodes", fontweight='semibold')
             ax3.set_ylabel("Pegs left", fontweight='semibold')
-            ax3.plot(x, pegs_left)
+            ax3.plot(x, self.pegs_left)
             plot_parameters(ax4, parameters)
             ax1.set_visible(True)
             ax3.set_visible(True)
@@ -211,7 +215,7 @@ class Player:
         ax4.set_visible(True)
 
     # Animating the game
-    def show_game(self, actions, pegs_left, parameters, legal_game):
+    def show_game(self, actions, parameters, legal_game, random_episodes):
         # Making the plots shown in the end
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(20, 11.2))
         # Hiding them until last plot
@@ -233,7 +237,7 @@ class Player:
         # The animation of the game, if there is a legal first move
         if legal_game:
             ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2),
-                            fargs=(G, actions, ax1, ax2, ax3, ax4, fig, pegs_left, parameters),
+                            fargs=(G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes),
                             interval=200, repeat=False)
         else:
             self.show_illegal_game(G, actions, ax1, ax2, ax3, ax4, fig, parameters)
@@ -331,7 +335,7 @@ def plot_parameters(ax, parameters):
     ax.text(0.05, 0.3, ("Critic - eligibility decay rate ($\u03BB_c$): " + str(parameters[9])), fontsize=12)
     ax.text(0.05, 0.2, ("Critic - discount factor ($\u03B3_c$): " + str(parameters[11])), fontsize=12)
     ax.text(0.05, 0.1, "Type of critic: ", fontsize=12)
-    if parameters[4] == 'table':
+    if parameters[4]:
         ax.text(0.325, 0.1, "Table", fontweight='semibold', fontsize=12)
     else:
         ax.text(0.325, 0.1, "Neural Network", fontweight='semibold', fontsize=12)
