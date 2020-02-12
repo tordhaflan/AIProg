@@ -65,6 +65,8 @@ class Agent:
             # First move
             action, self.random_episodes = get_best_action(self.actor.values, self.initial_state, initial_actions, self.epsilon, self.random_episodes, i)
             path.append((self.initial_state, action))
+            #TODO
+            # Flyttes inn i whilen slik at vi følger pseudo og endrer state i første linje
             state = self.sim_world.do_move(action)
 
             # Runs until it reaches a final state.
@@ -82,36 +84,59 @@ class Agent:
             previous_state = None
             previous_action = None
 
+            #TODO
+            # Denne kan bare flyttes ut av for-loopen
+
             # If it is the final episode, saves the path for visualization
             if i == self.episodes - 1:
                 final_path = []
                 for pair in path:
                     final_path.append(pair[1])
+            if self.table_critic:
 
-            # Her kommer en if med NN vs. table
-            # Updates SAP-values and State-values by back-propagating
-            for j in range(len(path)):
-                state, action = path.pop()
+                # Her kommer en if med NN vs. table
+                # Updates SAP-values and State-values by back-propagating
+                #TODO
+                # Gå igjennom path listen baklengs, ikke poppe
+                for j in range(len(path)):
+                    #TODO
+                    # Settes til state, action = path[j]
+                    state, action = path.pop()
 
-                # Reward to final state
-                if j == 0:
-                    reward = self.sim_world.get_reward(j)
+                    #TODO
+                    # Skrive om slika at ifen sjekker end_state ikke j==0 for å gi reward
+                    #Reward to final state
+                    if j == 0:
+                        reward = self.sim_world.get_reward(j)
 
-                # Discounted reward for other states
-                else:
-                    #reward = self.sim_world.get_reward(j)
-                    reward = 0
-                    self.critic.update_eligibility(state, previous_state)
-                    self.actor.update_eligibility(state, action, previous_state, previous_action)
+                    # Discounted reward for other states
+                    else:
+                        #reward = self.sim_world.get_reward(j)
+                        reward = 0
+                        self.critic.update_eligibility(state, previous_state)
+                        self.actor.update_eligibility(state, action, previous_state, previous_action)
 
-                # Update TD Error, State-values and SAP-values
-                self.critic.calculate_delta(reward, previous_state, state)
-                self.critic.change_value(state)
-                self.actor.change_value(state, action, self.critic.delta)
+                    # Update TD Error, State-values and SAP-values
+                    self.critic.calculate_delta(reward, previous_state, state)
+                    self.critic.change_value(state)
+                    self.actor.change_value(state, action, self.critic.delta)
 
-                previous_state = state
-                previous_action = action
+                    previous_state = state
+                    previous_action = action
+            else:
+                state_list=[]
+                target_list = []
+                for j in range(len(path)):
+                    state, action = path.pop()
+                    state = np.array(list(state))
 
+                    state_list.append(state)
+                    target_list.append(j)
+
+                state_list = np.array(state_list)
+                target_list = np.array(target_list)
+
+                self.model.fit(state_list, target_list, 10)
 
         print("Number of states visited:", len(self.actor.values.keys()))
         self.sim_world.show_game(final_path, self.parameters, True, self.random_episodes)
@@ -121,10 +146,12 @@ class Agent:
         model = Sequential()
 
         # Input layer to the model:
-        model.add(Dense(self.layers_NN[0], input_shape=(self.parameters[0]**2,), activation='relu'))
+        model.add(Dense(self.layers_NN[0], input_dim=self.parameters[0]**2, activation='relu'))
 
         for i in range(1, len(self.layers_NN)):
-            model.add(Dense(self.layers_NN[i], activation='relu'))
+            model.add(Dense(self.layers_NN[i], activation='relu',))
+
+        model.compile(optimizer='sgd', loss='mean_squared_error', metrics=['accuracy'])
 
         return SplitGD(model)
 
