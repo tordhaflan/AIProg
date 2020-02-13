@@ -27,6 +27,8 @@ class Critic:
         self.values[state] = self.values[state] + self.learning_rate * self.delta * self.eligibilities[state]
 
     #  Update eligibility value based on formula: e(s) ← γλe(s)
-    def update_eligibility(self, state, previous_state):
-        self.eligibilities[state] = self.discount_factor * self.eligibility_rate * self.eligibilities[previous_state]
+    def update_eligibility(self, state):
+        self.eligibilities[state] = self.discount_factor * self.eligibility_rate * self.eligibilities[state]
 
+    def change_value_NN(self, state, value):
+        self.values[state] = value

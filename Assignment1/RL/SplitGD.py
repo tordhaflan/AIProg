@@ -16,33 +16,49 @@ class SplitGD():
 
     def __init__(self, keras_model):
         self.model = keras_model
+        self.weights = []
+        self.eligebilities = []
 
     # Subclass this with something useful.
-    def modify_gradients(self, gradients):
-        print(gradients)
-        gradients = gradients.numpy()
+    def modify_gradients(self, gradients, learning_rate, td_error, discount_rate):
+        if len(self.weights) == 0:
+            for i in range(0, len(gradients), 2):
+                self.weights.append(np.zeros(gradients[i].numpy().shape))
+                self.eligebilities.append(np.zeros(gradients[i].numpy().shape))
+            self.weights = np.array(self.weights)
+            self.eligebilities = np.array(self.eligebilities)
+
+        for i in range(len(self.weights)):
+
+            self.eligebilities[i] = np.add(self.eligebilities[i], gradients[i*2].numpy())
+            error = learning_rate*td_error
+            error = np.dot(error, self.eligebilities[i])
+            self.weights[i] = np.add(self.weights[i], error)
+            self.eligebilities[i] = learning_rate * discount_rate * self.eligebilities[i]
+
+            gradients[i*2] = self.weights[i]
+
         return gradients
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor. features = state, target = reward+discount factor*value(next state)
     def gen_loss(self, features, targets, avg=False):
-        predictions = self.model.predict(features)# Feed-forward pass to produce outputs/predictions
+        predictions = self.model(features[0:1])# Feed-forward pass to produce outputs/predictions
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
-    def fit(self, features, targets, epochs=1, mbs=1, vfrac=0.1, verbose=True):
-        #params = [self.model.trainable_weights[i]for i in range(0,len(self.model.trainable_weights),2)]
+    def fit(self, features, targets, learning_rate, td_error, discount_rate, epochs=1, mbs=1, vfrac=0.1, verbose=True):
         params = self.model.trainable_weights
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
             for _ in range(math.floor(epochs / mbs)):
-                with tf.GradientTape(persistent=True) as tape:  # Read up on tf.GradientTape !
+                with tf.GradientTape() as tape:  # Read up on tf.GradientTape !
                     feaset, tarset = gen_random_minibatch(train_ins, train_targs, mbs=mbs)
                     loss = self.gen_loss(feaset, tarset, avg=False)
                     gradients = tape.gradient(loss, params)
-                    gradients = self.modify_gradients(gradients)
+                    gradients = self.modify_gradients(gradients, learning_rate, td_error, discount_rate)
                 self.model.optimizer.apply_gradients(zip(gradients, params))
-            if verbose: self.end_of_epoch_display(train_ins, train_targs, val_ins, val_targs)
+            #if verbose: self.end_of_epoch_display(train_ins, train_targs, val_ins, val_targs)
 
     # Use the 'metric' to run a quick test on any set of features and targets.  A typical metric is some form of
     # 'accuracy', such as 'categorical_accuracy'.  Read up on Keras.metrics !!

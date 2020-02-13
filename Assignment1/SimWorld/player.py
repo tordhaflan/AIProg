@@ -4,7 +4,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from Assignment1.SimWorld.board import Board, check_boundary, sort_color
+from Assignment1.SimWorld.board import Board, check_boundary, sort_color, draw_board
+
 
 
 class Player:
@@ -25,7 +26,7 @@ class Player:
         # Copy of initial board-object for visualization purposes
         self.initial_game = copy.deepcopy(self.game)
 
-    # Creating the binary tuple list that is used in calculations in agent.py
+    # Creating the binary tuple list that is used in calculations in agent_MC.py
     def get_binary_board(self):
         board = []
         for row in self.game.board:
@@ -60,7 +61,7 @@ class Player:
         self.game.board[jump[0]][jump[1]].filled = False
         self.game.board[goal[0]][goal[1]].filled = True
 
-        return self.get_binary_board()
+        return self.get_binary_board(), self.get_moves(), self.get_reward()
 
     # Check if ane more legal moves are available. If not, game_over.
     def game_over(self):
@@ -70,7 +71,7 @@ class Player:
 
     # Returns a reward of 1 if only 1 peg left. Else a negative reward of pegs left divided by
     # total pegs on the initial board
-    def get_reward(self, first):
+    def get_reward(self):
         pegs_left = 0
         for row in self.game.board:
             for element in row:
@@ -78,16 +79,18 @@ class Player:
                     pegs_left += 1
 
         # For visualization purposes
-        if first == 0:
-            self.pegs_left.append(pegs_left)
-            self.game = copy.deepcopy(self.initial_game)
 
-        # If triangle, different number of original pegs than if diamond
-        if not self.game.diamond:
-            reward = -pegs_left / (((self.initial_game.layers ** 2) / 2) + (self.initial_game.layers / 2))
-        else:
-            reward = -pegs_left / self.initial_game.layers ** 2
-        return 1 if pegs_left == 1 else reward
+        if self.game_over():
+            self.pegs_left.append(pegs_left)
+            # If triangle, different number of original pegs than if diamond
+            if not self.game.diamond:
+                reward = -pegs_left / (((self.initial_game.layers ** 2) / 2) + (self.initial_game.layers / 2))
+            else:
+                reward = -pegs_left / self.initial_game.layers ** 2
+            return 1 if pegs_left == 1 else reward
+        else: return 0
+
+
 
     # The function that updates the board.
     def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):

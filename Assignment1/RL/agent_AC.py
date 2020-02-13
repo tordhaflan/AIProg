@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 import random
-from keras.models import Sequential
-from keras.layers import Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 from Assignment1.RL.actor import Actor
 from Assignment1.RL.critic import Critic
 from Assignment1.SimWorld.player import Player
@@ -63,80 +63,70 @@ class Agent:
             self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
                                                                                       self.critic.eligibilities)
             # First move
+            state = self.initial_state
             action, self.random_episodes = get_best_action(self.actor.values, self.initial_state, initial_actions, self.epsilon, self.random_episodes, i)
+            self.critic.values[state] = random.randint(1, 10) / 100
+            self.actor.set_values(self.initial_state, initial_actions)
             path.append((self.initial_state, action))
+
             #TODO
             # Flyttes inn i whilen slik at vi følger pseudo og endrer state i første linje
-            state = self.sim_world.do_move(action)
 
             # Runs until it reaches a final state.
             while not self.sim_world.game_over():
-                actions = self.sim_world.get_moves()
-                if not self.critic.values.keys().__contains__(state):
-                    self.critic.values[state] = random.randint(1, 10) / 100
-                    self.actor.set_values(state, actions)
-                action, self.random_episodes = get_best_action(self.actor.values, state, actions, self.epsilon, self.random_episodes, i)
+
+                next_state, actions, reward = self.sim_world.do_move(action)
+
+                if not self.critic.values.keys().__contains__(next_state):
+                    self.critic.values[next_state] = random.randint(1, 10) / 100
+                    self.actor.set_values(next_state, actions)
+                if not self.sim_world.game_over():
+                    next_action, self.random_episodes = get_best_action(self.actor.values, next_state, actions, self.epsilon, self.random_episodes, i)
                 self.actor.eligibilities[state + action] = 1
+                self.critic.calculate_delta(reward, next_state, state)
                 self.critic.eligibilities[state] = 1
-                path.append((state, action))
-                state = self.sim_world.do_move(action)
+                path.append((next_state, next_action))
+                if self.table_critic:
+                    for j in range(len(path)-2, -1, -1):
+                        itt_state, itt_action = path[j]
 
-            previous_state = None
-            previous_action = None
+                        self.critic.change_value(itt_state)
+                        self.critic.update_eligibility(itt_state)
+                        self.actor.change_value(itt_state, itt_action, self.critic.delta)
+                        self.actor.update_eligibility(itt_state, itt_action)
+                else:
+                    state_list = []
+                    target_list = []
+                    for j in range(len(path)-1):
+                        itt_next_state, itt_next_action = path[j+1]
+                        itt_state, itt_action = path[j]
+                        target = reward+self.critic.discount_factor*self.critic.values[itt_next_state]
+                        target_list.append(target)
+                        itt_state = np.array(itt_state)
+                        state_list.append(itt_state)
 
-            #TODO
-            # Denne kan bare flyttes ut av for-loopen
+                    state_list = np.array(state_list)
+                    target_list = np.array(target_list)
 
-            # If it is the final episode, saves the path for visualization
-            if i == self.episodes - 1:
-                final_path = []
-                for pair in path:
-                    final_path.append(pair[1])
-            if self.table_critic:
+                    self.model.fit(state_list, target_list, self.critic.delta, self.critic.learning_rate, self.critic.discount_factor, 10)
 
-                # Her kommer en if med NN vs. table
-                # Updates SAP-values and State-values by back-propagating
-                #TODO
-                # Gå igjennom path listen baklengs, ikke poppe
-                for j in range(len(path)):
-                    #TODO
-                    # Settes til state, action = path[j]
-                    state, action = path.pop()
+                    for j in range(len(path)-2, -1, -1):
+                        itt_state, itt_action = path[j]
+                        value = self.model.model.predict(np.array([itt_state]))
+                        self.critic.change_value_NN(itt_state, value[0][0])
+                        self.critic.update_eligibility(itt_state)
+                        self.actor.change_value(itt_state, itt_action, self.critic.delta)
+                        self.actor.update_eligibility(itt_state, itt_action)
 
-                    #TODO
-                    # Skrive om slika at ifen sjekker end_state ikke j==0 for å gi reward
-                    #Reward to final state
-                    if j == 0:
-                        reward = self.sim_world.get_reward(j)
+                state = next_state
+                action = next_action
 
-                    # Discounted reward for other states
-                    else:
-                        #reward = self.sim_world.get_reward(j)
-                        reward = 0
-                        self.critic.update_eligibility(state, previous_state)
-                        self.actor.update_eligibility(state, action, previous_state, previous_action)
+            self.sim_world.game = copy.deepcopy(self.sim_world.initial_game)
 
-                    # Update TD Error, State-values and SAP-values
-                    self.critic.calculate_delta(reward, previous_state, state)
-                    self.critic.change_value(state)
-                    self.actor.change_value(state, action, self.critic.delta)
-
-                    previous_state = state
-                    previous_action = action
-            else:
-                state_list=[]
-                target_list = []
-                for j in range(len(path)):
-                    state, action = path.pop()
-                    state = np.array(list(state))
-
-                    state_list.append(state)
-                    target_list.append(j)
-
-                state_list = np.array(state_list)
-                target_list = np.array(target_list)
-
-                self.model.fit(state_list, target_list, 10)
+            print(max(self.critic.values.values()), min(self.critic.values.values()))
+        final_path = []
+        for s, a in path:
+            final_path.append(a)
 
         print("Number of states visited:", len(self.actor.values.keys()))
         self.sim_world.show_game(final_path, self.parameters, True, self.random_episodes)
