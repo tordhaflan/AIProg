@@ -16,29 +16,36 @@ class SplitGD():
 
     def __init__(self, keras_model):
         self.model = keras_model
-        self.weights = []
-        self.eligebilities = []
+        self.weights = np.array([x.numpy() for x in self.model.trainable_weights])
+        self.eligebilities = np.array([np.ones(x.shape) for x in self.weights])
 
     # Subclass this with something useful.
     def modify_gradients(self, gradients, learning_rate, td_error, discount_rate):
-        if len(self.weights) == 0:
+        """
+         if len(self.weights) == 0:
             for i in range(0, len(gradients), 2):
-                self.weights.append(np.zeros(gradients[i].numpy().shape))
-                self.eligebilities.append(np.zeros(gradients[i].numpy().shape))
+                self.weights.append(gradients[i].numpy())
+                self.eligebilities.append(np.ones(gradients[i].numpy().shape))
             self.weights = np.array(self.weights)
             self.eligebilities = np.array(self.eligebilities)
 
         for i in range(len(self.weights)):
 
-            self.eligebilities[i] = np.add(self.eligebilities[i], gradients[i*2].numpy())
-            error = learning_rate*td_error
-            error = np.dot(error, self.eligebilities[i])
+            self.eligebilities[i] = np.add(self.eligebilities[i], gradients[i].numpy())
+            error = np.dot(td_error, self.eligebilities[i])
             self.weights[i] = np.add(self.weights[i], error)
             self.eligebilities[i] = learning_rate * discount_rate * self.eligebilities[i]
 
-            gradients[i*2] = self.weights[i]
+            gradients[i] = self.weights[i]
 
-        return gradients
+
+        """
+
+        self.eligebilities = np.add(self.eligebilities, gradients)
+        self.weights = np.add(self.weights, np.dot(td_error, self.eligebilities))
+        self.eligebilities = np.dot(self.eligebilities, learning_rate*discount_rate)
+
+        return self.weights
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor. features = state, target = reward+discount factor*value(next state)

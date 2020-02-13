@@ -108,7 +108,7 @@ class Agent:
                     state_list = np.array(state_list)
                     target_list = np.array(target_list)
 
-                    self.model.fit(state_list, target_list, self.critic.delta, self.critic.learning_rate, self.critic.discount_factor, 10)
+                    self.model.fit(state_list, target_list, self.critic.delta, self.critic.learning_rate, self.critic.discount_factor)
 
                     for j in range(len(path)-2, -1, -1):
                         itt_state, itt_action = path[j]

@@ -81,6 +81,7 @@ class Player:
         # For visualization purposes
 
         if self.game_over():
+            print(pegs_left)
             self.pegs_left.append(pegs_left)
             # If triangle, different number of original pegs than if diamond
             if not self.game.diamond:
