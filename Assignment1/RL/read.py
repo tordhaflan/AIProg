@@ -19,9 +19,7 @@ def read_parameters_file():
             if s.isdigit():
                 s = int(s)
             elif s.__contains__("."):
-                s = s.split(".")
-                dec = float(s[1])
-                s = dec/100.0
+                s = float(s)
             elif s.__contains__("(") and not s.__contains__("["):
                 s = s.strip("(")
                 s = s.strip(")")

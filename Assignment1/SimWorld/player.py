@@ -81,7 +81,6 @@ class Player:
         # For visualization purposes
 
         if self.game_over():
-            print(pegs_left)
             self.pegs_left.append(pegs_left)
             # If triangle, different number of original pegs than if diamond
             if not self.game.diamond:
@@ -333,10 +332,10 @@ def plot_parameters(ax, parameters):
     ax.text(0.05, 0.9, ("Number of episodes: " + str(parameters[3])), fontsize=12)
     ax.text(0.05, 0.8, ("Initial epsilon (\u03B5): " + str(parameters[12])), fontsize=12)
     ax.text(0.05, 0.7, ("Actor - learning rate ($\u03B1_a$): " + str(parameters[6])), fontsize=12)
-    ax.text(0.05, 0.6, ("Actor - eligibility decay rate ($\u03BB_a$): " + str(parameters[8])), fontsize=12)
-    ax.text(0.05, 0.5, ("Actor - discount factor ($\u03B3_a$): " + str(parameters[10])), fontsize=12)
-    ax.text(0.05, 0.4, ("Critic - learning rate ($\u03B1_c$): " + str(parameters[7])), fontsize=12)
-    ax.text(0.05, 0.3, ("Critic - eligibility decay rate ($\u03BB_c$): " + str(parameters[9])), fontsize=12)
+    ax.text(0.05, 0.6, ("Actor - eligibility decay rate ($\u03BB_a$): " + str(parameters[7])), fontsize=12)
+    ax.text(0.05, 0.5, ("Actor - discount factor ($\u03B3_a$): " + str(parameters[8])), fontsize=12)
+    ax.text(0.05, 0.4, ("Critic - learning rate ($\u03B1_c$): " + str(parameters[9])), fontsize=12)
+    ax.text(0.05, 0.3, ("Critic - eligibility decay rate ($\u03BB_c$): " + str(parameters[10])), fontsize=12)
     ax.text(0.05, 0.2, ("Critic - discount factor ($\u03B3_c$): " + str(parameters[11])), fontsize=12)
     ax.text(0.05, 0.1, "Type of critic: ", fontsize=12)
     if parameters[4]:
