@@ -32,10 +32,12 @@ class Agent:
         self.epsilon = copy.deepcopy(self.initial_epsilon)
         self.initial_state = self.sim_world.get_binary_board()  # tuple (converts playboard to a long tuple)
 
-
     #  The learning process itself. Taken from pseudo-code in actor-critic.pdf
-    def train(self):
+    def train(self, display=True):
         start_time = time.time()
+        sys.stdout.write("Training started")
+        sys.stdout.flush()
+
         k = 0.05
 
         #  Initialize state
@@ -62,21 +64,21 @@ class Agent:
                     sys.stdout.flush()
                     k += 0.05
                 if i == self.episodes-1:
-                    sys.stdout.write("\r Trainig done. \n")
-
+                    m, s = divmod(time.time()-start_time, 60)
+                    sys.stdout.write("\r Trainig done. Total time: {}m {}s \n".format(int(m), int(s)))
                     self.epsilon = 0
 
-
-            #  Set e to 0. Set to 1 later if state is visited
+            #TODO
+            # ?!?!RESET CRITIC_ELIGIBILITIES TO ZERO OR NOT FOR NN?!?!
+            #Set e to 0. Set to 1 later if state is visited
             self.actor.reset_eligibilities()
-            self.critic.reset_eligibilities()
+            #self.critic.reset_eligibilities()
 
             # First move
             action, self.random_episodes = get_best_action(self.actor.values, state, initial_actions,
                                                            self.epsilon, self.random_episodes, i)
 
             path.append((state, action))
-
 
             #TODO
             # Flyttes inn i whilen slik at vi følger pseudo og endrer state i første linje
@@ -86,9 +88,7 @@ class Agent:
 
                 next_state, actions, reward = self.sim_world.do_move(action)
 
-                #TODO
-                # Skriver om slik at den sjekker med hensyn på actor
-                if not self.critic.values.keys().__contains__(next_state):
+                if new_state(self.actor.values, next_state, actions):
                     self.critic.values[next_state] = random.randint(1, 10) / 100
                     self.actor.set_values(next_state, actions)
 
@@ -101,7 +101,6 @@ class Agent:
 
                 path.append((next_state, next_action))
 
-
                 if self.critic.table_critic:
                     self.actor.eligibilities[state + action] = 1
                     self.critic.calculate_delta(reward, next_state, state)
@@ -109,7 +108,6 @@ class Agent:
 
                     for j in range(len(path)-2, -1, -1):
                         itt_state, itt_action = path[j]
-
                         self.critic.change_value(itt_state, path, reward)
                         self.critic.update_eligibility(itt_state)
                         self.actor.change_value(itt_state, itt_action, self.critic.delta)
@@ -129,14 +127,11 @@ class Agent:
 
             self.sim_world.game = copy.deepcopy(self.sim_world.initial_game)
 
-        final_path = []
-        for s, a in path:
-            final_path.append(a)
-        print(time.time()-start_time)
+        final_path = [a for s, a in path]
         print("Number of states visited:", len(self.actor.values.keys()))
-        self.sim_world.show_game(final_path, self.parameters, True, self.random_episodes)
-        print(self.epsilon)
-
+        if display:
+            self.sim_world.show_game(final_path, self.parameters, True, self.random_episodes)
+        return self.sim_world.pegs_left[-1]
 
 
 # Runs and trains the agent
@@ -154,8 +149,10 @@ def main():
                 c = random.randint(0, r)
             open_cells.append((r, c))
         parameters[2] = open_cells
-    agent = Agent(parameters)
-    agent.train()
+
+        agent = Agent(parameters)
+        agent.train()
+
 
 
 # Finds the best next action for a given state. Initialize with first possible action to avoid None-move.
@@ -181,7 +178,10 @@ def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
     else:
         return best_action, random_moves
 
-
-
+def new_state(values, state, actions):
+    for action in actions:
+        if values.keys().__contains__(state+action):
+            return False
+    return True
 
 main()

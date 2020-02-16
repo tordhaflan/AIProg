@@ -4,11 +4,11 @@ Board type (diamond or triangle): triangle
 
 Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(2,1)]
 
-Number of episodes (e.g 100 or 500): 200
+Number of episodes (e.g 100 or 500): 100
 
 Type of critic (table or NN): NN
 
-Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (3, 5, 1)
+Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (5, 10, 1)
 
 Actor learning rate (e.g 0.9): 0.99
 
@@ -16,7 +16,7 @@ Actor eligibility decay rate (e.g 0.9): 0.95
 
 Actor discount factor (e.g 0.9): 0.95
 
-Critic learning rate (e.g 0.9): 0.90
+Critic learning rate (e.g 0.9): 0.95
 
 Critic eligibility decay rate (e.g 0.9): 0.95
 

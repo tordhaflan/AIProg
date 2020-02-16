@@ -7,7 +7,6 @@ from matplotlib.animation import FuncAnimation
 from Assignment1.SimWorld.board import Board, check_boundary, sort_color, draw_board
 
 
-
 class Player:
     # Init Player-object
     def __init__(self, layers=3, diamond=False, open_cells=[]):
@@ -87,10 +86,10 @@ class Player:
                 reward = -pegs_left / (((self.initial_game.layers ** 2) / 2) + (self.initial_game.layers / 2))
             else:
                 reward = -pegs_left / self.initial_game.layers ** 2
+
             return 1 if pegs_left == 1 else reward
-        else: return 0
-
-
+        else:
+            return 0
 
     # The function that updates the board.
     def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):
@@ -157,7 +156,7 @@ class Player:
             ax2.set_title("Final board", fontweight='bold')
             for x in random_episodes.keys():
                 random_episodes[x] = self.pegs_left[x]
-            ax3.scatter(random_episodes.keys(), random_episodes.values(), marker = 'o', color='red', s=2)
+            ax3.scatter(random_episodes.keys(), random_episodes.values(), marker='o', color='red', s=2)
             x = np.arange(len(self.pegs_left))
             ax3.set_title("Development of RLs performance", fontweight='bold')
             ax3.set_xlabel("Episodes", fontweight='semibold')
@@ -199,12 +198,12 @@ class Player:
         length = len(self.open_cells)
 
         for i, x in enumerate(self.open_cells):
-            row = 1/(length+1)
+            row = 1 / (length + 1)
             if i == 0:
                 ax2.text(0, 1 - row, "Open cell" + (": " + str(x) if length == 1 else "s: " + str(x)),
                          fontweight='bold', fontsize=24)
             else:
-                ax2.text(0.505, 1 - (row*(i+1)), str(x), fontweight='bold', fontsize=24)
+                ax2.text(0.505, 1 - (row * (i + 1)), str(x), fontweight='bold', fontsize=24)
         ax2.axis('off')
         ax3.text(0.3, 0.5, "This bord has no initial move", fontweight='bold', fontsize=24)
         ax3.axis('off')
@@ -241,13 +240,11 @@ class Player:
         # The animation of the game, if there is a legal first move
         if legal_game:
             ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1),
-                            fargs=(G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes),
-                            interval=2000, repeat=False)
+                                fargs=(G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes),
+                                interval=1000, repeat=False)
         else:
             self.show_illegal_game(G, actions, ax1, ax2, ax3, ax4, fig, parameters)
         plt.show()
-
-
 
 
 # Finding coordinates of possible moves

@@ -16,56 +16,13 @@ class SplitGD():
 
     def __init__(self, keras_model):
         self.model = keras_model
-        """
-        self.weights = [tf.convert_to_tensor(self.model.trainable_weights[i].numpy()) for i in range(0,len(self.model.trainable_weights),2)]
-        self.eligebilities = [tf.convert_to_tensor(np.zeros(x.shape), dtype=tf.float32) for x in self.weights]
-        
-        """
         self.eligebilities = [tf.convert_to_tensor(np.zeros(self.model.trainable_weights[i].numpy().shape), dtype=tf.float32) for i in range(len(self.model.trainable_weights))]
 
     # Subclass this with something useful.
-    def modify_gradients(self, gradients, learning_rate, td_error, discount_rate):
-        """
-         if len(self.weights) == 0:
-            for i in range(0, len(gradients), 2):
-                self.weights.append(gradients[i].numpy())
-                self.eligebilities.append(np.ones(gradients[i].numpy().shape))
-            self.weights = np.array(self.weights)
-            self.eligebilities = np.array(self.eligebilities)
-
-        for i in range(len(self.weights)):
-
-            self.eligebilities[i] = np.add(self.eligebilities[i], gradients[i].numpy())
-            error = np.dot(td_error, self.eligebilities[i])
-            self.weights[i] = np.add(self.weights[i], error)
-            self.eligebilities[i] = learning_rate * discount_rate * self.eligebilities[i]
-
-            gradients[i] = self.weights[i]
-
-        --------------------------------
-        td_error = tf.Variable(td_error)
-        change = tf.Variable(learning_rate * discount_rate, dtype=tf.float32)
-
-        self.eligebilities = [tf.scalar_mul(td_error, tf.math.add(self.eligebilities[i], gradients[i*2])) for i in
-                              range(len(self.eligebilities))]
-        self.weights = [tf.math.add(self.weights[i], self.eligebilities[i]) for i in range(len(self.weights))]
-        self.eligebilities = [tf.math.scalar_mul(change, self.eligebilities[i]) for i in range(len(self.eligebilities))]
-
-        --------------------------------
-        self.eligebilities = np.add(self.eligebilities, gradients)
-        self.weights = np.add(self.weights, np.dot(td_error, self.eligebilities))
-        self.eligebilities = np.dot(self.eligebilities, learning_rate * discount_rate)
-        """
-        td_error = tf.Variable(td_error, dtype=tf.float32)
-        #gradient_weights = [tf.math.divide(gradients[i], td_error) for i in range(len(gradients))]
-        #self.eligebilities = [tf.math.subtract(self.eligebilities[i], gradient_weights[i]) for i in range(0,len(gradient_weights),2)]
-
+    def modify_gradients(self, gradients, learning_rate, td_error):
+        change = tf.Variable(learning_rate * td_error, dtype=tf.float32)
         for i in range(0,len(self.eligebilities),2):
             self.eligebilities[i] = tf.math.subtract(self.eligebilities[i], gradients[i])
-            #gradients[i*2] = tf.math.add(gradients[i*2], delta_eligibilities[i])
-            #gradients[i*2] = tf.math.multiply(td_error, self.eligebilities[i])
-            #gradients[i*2] = tf.math.multiply(self.eligebilities[i], change)
-        change = tf.Variable(learning_rate * td_error, dtype=tf.float32)
 
         self.eligebilities = [tf.math.multiply(self.eligebilities[i], change) for i in range(len(self.eligebilities))]
 
@@ -78,7 +35,7 @@ class SplitGD():
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
-    def fit(self, features, targets, td_error, learning_rate, discount_rate, epochs=1, mbs=1, vfrac=0.1, verbose=True):
+    def fit(self, features, targets, td_error, learning_rate, epochs=1, mbs=1, vfrac=0.1, verbose=True):
         params = self.model.trainable_weights
         train_ins, train_targs, val_ins, val_targs = split_training_data(features, targets, vfrac=vfrac)
         for _ in range(epochs):
@@ -87,7 +44,7 @@ class SplitGD():
                     feaset, tarset = gen_random_minibatch(train_ins, train_targs, mbs=mbs)
                     loss = self.gen_loss(feaset, tarset, avg=False)
                     gradients = tape.gradient(loss, params)
-                    gradients = self.modify_gradients(gradients, learning_rate, td_error, discount_rate)
+                    gradients = self.modify_gradients(gradients, learning_rate, td_error)
                 self.model.optimizer.apply_gradients(zip(gradients, params))
             if verbose: self.end_of_epoch_display(train_ins, train_targs, val_ins, val_targs)
 
@@ -114,7 +71,6 @@ class SplitGD():
         self.status_display(train_ins, train_targs, mode='Train')
         if len(val_ins) > 0:
             self.status_display(val_ins, val_targs, mode='Validation')
-
 
 # A few useful auxiliary functions
 
