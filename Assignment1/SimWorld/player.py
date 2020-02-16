@@ -95,13 +95,13 @@ class Player:
     # The function that updates the board.
     def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):
         # Resetting the plot.
-        if self.counter < len(actions) + 2:
+        if self.counter < len(actions) + 1:
             ax2.clear()
         color_map = {}
         border_color = {}
 
         # Coloring pegs. Shown on first and second last plot.
-        if self.counter == 0 or self.counter == len(actions) + 1:
+        if self.counter == 0 or self.counter == len(actions):
             for b in self.game.board:
                 for i in range(len(b)):
                     peg = b[i]
@@ -125,30 +125,31 @@ class Player:
                 ax2.set_title("The RL failed")
 
         # Game animation for every plot other than first, and the two last.
-        elif self.counter < len(actions) + 2:
+        elif self.counter < len(actions):
             move = actions[self.counter - 1]
-            start = move[0]
-            jump = move[1]
-            for index, b in enumerate(self.game.board):
-                for i in range(len(b)):
-                    peg = b[i]
-                    if peg is not None:
-                        if peg.coordinates == start:
-                            color_map[peg.pegNumber] = 'green'
-                            border_color[peg.pegNumber] = 'green'
-                        elif peg.coordinates == jump:
-                            color_map[peg.pegNumber] = 'darkred'
-                            border_color[peg.pegNumber] = 'darkred'
-                        elif peg.filled:
-                            color_map[peg.pegNumber] = 'darkblue'
-                            border_color[peg.pegNumber] = 'darkblue'
-                        else:
-                            color_map[peg.pegNumber] = 'white'
-                            border_color[peg.pegNumber] = 'grey'
-            self.do_move(move)
+            if not move is None:
+                start = move[0]
+                jump = move[1]
+                for index, b in enumerate(self.game.board):
+                    for i in range(len(b)):
+                        peg = b[i]
+                        if peg is not None:
+                            if peg.coordinates == start:
+                                color_map[peg.pegNumber] = 'green'
+                                border_color[peg.pegNumber] = 'green'
+                            elif peg.coordinates == jump:
+                                color_map[peg.pegNumber] = 'darkred'
+                                border_color[peg.pegNumber] = 'darkred'
+                            elif peg.filled:
+                                color_map[peg.pegNumber] = 'darkblue'
+                                border_color[peg.pegNumber] = 'darkblue'
+                            else:
+                                color_map[peg.pegNumber] = 'white'
+                                border_color[peg.pegNumber] = 'grey'
+                self.do_move(move)
 
         # Making th final board and statistics
-        if self.counter == len(actions) + 2:
+        if self.counter == len(actions) + 1:
             ax1.change_geometry(2, 3, 1)
             ax2.change_geometry(2, 3, 2)
             ax3.change_geometry(2, 1, 2)
@@ -239,9 +240,9 @@ class Player:
 
         # The animation of the game, if there is a legal first move
         if legal_game:
-            ani = FuncAnimation(fig, self.update, frames=(len(actions) + 2),
+            ani = FuncAnimation(fig, self.update, frames=(len(actions) + 1),
                             fargs=(G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes),
-                            interval=200, repeat=False)
+                            interval=2000, repeat=False)
         else:
             self.show_illegal_game(G, actions, ax1, ax2, ax3, ax4, fig, parameters)
         plt.show()

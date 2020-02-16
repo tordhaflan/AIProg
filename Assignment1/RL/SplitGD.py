@@ -21,8 +21,8 @@ class SplitGD():
         self.eligebilities = [tf.convert_to_tensor(np.zeros(x.shape), dtype=tf.float32) for x in self.weights]
         
         """
+        self.eligebilities = [tf.convert_to_tensor(np.zeros(self.model.trainable_weights[i].numpy().shape), dtype=tf.float32) for i in range(len(self.model.trainable_weights))]
 
-        self.eligebilities = [tf.convert_to_tensor(np.zeros(self.model.trainable_weights[i].numpy().shape), dtype=tf.float32) for i in range(0,len(self.model.trainable_weights),2)]
     # Subclass this with something useful.
     def modify_gradients(self, gradients, learning_rate, td_error, discount_rate):
         """
@@ -57,19 +57,19 @@ class SplitGD():
         self.eligebilities = np.dot(self.eligebilities, learning_rate * discount_rate)
         """
         td_error = tf.Variable(td_error, dtype=tf.float32)
-        learning_rate = tf.Variable(learning_rate, dtype=tf.float32)
-        gradient_weights = [tf.math.divide(gradients[i], -td_error) for i in range(0,len(gradients),2)]
-        #delta_eligibilities = [tf.math.subtract(self.eligebilities[i], gradient_weights[i]) for i in range(len(gradient_weights))]
+        #gradient_weights = [tf.math.divide(gradients[i], td_error) for i in range(len(gradients))]
+        #self.eligebilities = [tf.math.subtract(self.eligebilities[i], gradient_weights[i]) for i in range(0,len(gradient_weights),2)]
 
-        self.eligebilities = [tf.math.add(self.eligebilities[i], gradient_weights[i]) for i in
-                              range(len(self.eligebilities))]
-        change = tf.multiply(td_error, learning_rate)
-        for i in range(len(self.eligebilities)):
+        for i in range(0,len(self.eligebilities),2):
+            self.eligebilities[i] = tf.math.subtract(self.eligebilities[i], gradients[i])
             #gradients[i*2] = tf.math.add(gradients[i*2], delta_eligibilities[i])
             #gradients[i*2] = tf.math.multiply(td_error, self.eligebilities[i])
-            gradients[i*2] = tf.math.multiply(self.eligebilities[i], change)
+            #gradients[i*2] = tf.math.multiply(self.eligebilities[i], change)
+        change = tf.Variable(learning_rate * td_error, dtype=tf.float32)
 
-        return gradients
+        self.eligebilities = [tf.math.multiply(self.eligebilities[i], change) for i in range(len(self.eligebilities))]
+
+        return self.eligebilities
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor. features = state, target = reward+discount factor*value(next state)

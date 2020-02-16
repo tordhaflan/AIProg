@@ -24,6 +24,10 @@ class Actor:
         self.values[state + action] = self.values[state + action] \
                                     + self.learning_rate * delta * self.eligibilities[state + action]
 
+    def reset_eligibilities(self):
+        for key in self.eligibilities.keys():
+            self.eligibilities[key] = 0
+
     # Updates e based on formula e(s,a) ← γλe(s,a)
     def update_eligibility(self, state, action):
         self.eligibilities[state + action] = self.discount_factor * self.eligibility_rate \

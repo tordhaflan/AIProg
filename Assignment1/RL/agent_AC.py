@@ -41,7 +41,7 @@ class Agent:
         #  Initialize state
         initial_actions = self.sim_world.get_moves()
         if len(initial_actions) == 0:
-            self.sim_world.show_game(None, None, self.parameters, False)
+            self.sim_world.show_game(None, self.parameters, False, self.random_episodes)
             return
 
         if self.critic.table_critic:
@@ -68,14 +68,14 @@ class Agent:
 
 
             #  Set e to 0. Set to 1 later if state is visited
-            self.actor.eligibilities, self.critic.eligibilities = reset_eligibilities(self.actor.eligibilities,
-                                                                                      self.critic.eligibilities)
+            self.actor.reset_eligibilities()
+            self.critic.reset_eligibilities()
+
             # First move
             action, self.random_episodes = get_best_action(self.actor.values, state, initial_actions,
                                                            self.epsilon, self.random_episodes, i)
 
             path.append((state, action))
-
 
 
             #TODO
@@ -86,15 +86,21 @@ class Agent:
 
                 next_state, actions, reward = self.sim_world.do_move(action)
 
+                #TODO
+                # Skriver om slik at den sjekker med hensyn på actor
                 if not self.critic.values.keys().__contains__(next_state):
-                    if self.critic.table_critic:
-                        self.critic.values[next_state] = random.randint(1, 10) / 100
+                    self.critic.values[next_state] = random.randint(1, 10) / 100
                     self.actor.set_values(next_state, actions)
 
                 if not self.sim_world.game_over():
                     next_action, self.random_episodes = get_best_action(self.actor.values, next_state, actions,
-                                                                        self.epsilon, self.random_episodes, i)
+                                                                       self.epsilon, self.random_episodes, i)
+
+                else:
+                    next_action = None
+
                 path.append((next_state, next_action))
+
 
                 if self.critic.table_critic:
                     self.actor.eligibilities[state + action] = 1
@@ -118,14 +124,10 @@ class Agent:
                         self.actor.change_value(itt_state, itt_action, self.critic.delta)
                         self.actor.update_eligibility(itt_state, itt_action)
 
-                    self.critic.reset_eligibilities()
-
                 state = next_state
                 action = next_action
 
             self.sim_world.game = copy.deepcopy(self.sim_world.initial_game)
-
-            #print(self.actor.values.values())
 
         final_path = []
         for s, a in path:
@@ -156,16 +158,6 @@ def main():
     agent.train()
 
 
-# Set e to 0.
-def reset_eligibilities(actor, critic):
-    for a in actor.keys():
-        actor[a] = 0
-    for c in critic.keys():
-        critic[c] = 0
-
-    return actor, critic
-
-
 # Finds the best next action for a given state. Initialize with first possible action to avoid None-move.
 def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
     """
@@ -177,17 +169,16 @@ def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
     """
     value = actor_values[state + actions[0]]
     best_action = actions[0]
-    #print(list(actor_values.keys()).index(state+best_action), "f", actor_values[state+best_action])
     for action in actions:
         if actor_values[state + action] > value:
             best_action = action
-            value = actor_values[state + action]
+            value = actor_values[state + best_action]
+
     randomness = random.randint(1, 100) > np.ceil(epsilon*100)
     if not randomness:
         random_moves[i] = 1
         return actions[random.randint(0, len(actions)-1)], random_moves
     else:
-        #print(list(actor_values.keys()).index(state+best_action), 'a', actor_values[state+best_action] )
         return best_action, random_moves
 
 

@@ -49,24 +49,26 @@ class Critic:
         else:
             state_list = []
             target_list = []
-            for j in range(len(path) - 1):
-                itt_next_state, itt_next_action = path[j + 1]
+            if reward >= 0.5:
+                print(reward)
+            for j in range(len(path)):
                 itt_state, itt_action = path[j]
-                #if not self.values.keys().__contains__(itt_next_state):
-                #    value = random.randint(1, 10) / 100
-                #    self.values[itt_next_state] = 0
-                #else:
-                value = self.model.model.predict(np.array([itt_next_state]))[0][0]
-                target = reward + self.discount_factor * value
+                if reward != 0 and j == len(path)-1:
+                    target = reward
+                elif j == len(path)-1:
+                    value = self.model.model.predict(np.array([itt_state]))[0][0]
+                    target = reward + self.discount_factor * value
+                else:
+                    itt_next_state, itt_next_action = path[j + 1]
+                    value = self.model.model.predict(np.array([itt_next_state]))[0][0]
+                    target = reward + self.discount_factor * value
                 target_list.append(target)
                 itt_state = np.array(itt_state)
                 state_list.append(itt_state)
 
             state_list = np.array(state_list)
             target_list = np.array(target_list)
-
-            print(target_list)
-
+            #print(target_list)
             self.model.fit(state_list, target_list, self.delta, self.learning_rate,
                            self.discount_factor, verbose=False)
 
@@ -94,6 +96,9 @@ class Critic:
         return SplitGD(model)
 
     def reset_eligibilities(self):
-        self.model.eligebilities = [
-            tf.convert_to_tensor(np.zeros(self.model.model.trainable_weights[i].numpy().shape), dtype=tf.float32) for i in
-            range(0, len(self.model.model.trainable_weights), 2)]
+        if self.table_critic:
+            for key in self.eligibilities.keys():
+                self.eligibilities[key] = 0
+        else:
+            zero = tf.Variable(0, dtype=tf.float32)
+            self.model.eligebilities = [tf.math.multiply(self.model.eligebilities[i], zero) for i in range(len(self.eligibilities))]
