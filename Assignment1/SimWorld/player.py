@@ -8,9 +8,9 @@ from Assignment1.SimWorld.board import Board, check_boundary, sort_color, draw_b
 
 
 class Player:
-    # Init Player-object
     def __init__(self, layers=3, diamond=False, open_cells=[]):
-        """
+        """ Init Player-object
+
         :param layers: Size of the board
         :param diamond: Type of board
         :param open_cells: List of open cells
@@ -25,8 +25,11 @@ class Player:
         # Copy of initial board-object for visualization purposes
         self.initial_game = copy.deepcopy(self.game)
 
-    # Creating the binary tuple list that is used in calculations in agent_MC.py
     def get_binary_board(self):
+        """ Creating the binary tuple list that is used in calculations in agent_MC.py
+
+        :return: A binary tuple of filled pegs and empty nodes
+        """
         board = []
         for row in self.game.board:
             for element in row:
@@ -38,9 +41,12 @@ class Player:
                     board.append(0)
         return tuple(board)
 
-    # Gets all legal moves for a given state
-    # Tuple map in order to add jump and end pegs
     def get_moves(self):
+        """ Gets all legal moves for a given state.
+        Tuple map in order to add jump and end pegs.
+
+        :return: A list of tuples that are possible legal moves in a given state of the board.
+        """
         moves = []
         for row in self.game.board:
             for peg in row:
@@ -52,8 +58,12 @@ class Player:
                             moves.append(tuple(move))
         return moves
 
-    # The execution of a move. Changing which pegs are filled.
     def do_move(self, move):
+        """ The execution of a move. Changing which pegs are filled.
+
+        :param move: List of tuples of coordinates, a given move
+        :return: The updated board, new possible moves, and reward for the current state.
+        """
         start, jump, goal = move[0], move[1], move[2]
 
         self.game.board[start[0]][start[1]].filled = False
@@ -62,15 +72,21 @@ class Player:
 
         return self.get_binary_board(), self.get_moves(), self.get_reward()
 
-    # Check if ane more legal moves are available. If not, game_over.
     def game_over(self):
+        """ Check if ane more legal moves are available. If not, game_over.
+
+        :return: True if no more moves possible
+        """
         if more_moves_available(self.game):
             return False
         return True
 
-    # Returns a reward of 1 if only 1 peg left. Else a negative reward of pegs left divided by
-    # total pegs on the initial board
     def get_reward(self):
+        """ Returns a reward of 1 if only 1 peg left. Else a negative reward of pegs left divided by
+            total pegs on the initial board
+
+        :return: int, reward of a state given by pegs_left
+        """
         pegs_left = 0
         for row in self.game.board:
             for element in row:
@@ -91,8 +107,19 @@ class Player:
         else:
             return 0
 
-    # The function that updates the board.
     def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):
+        """ The function that updates the board.
+
+        :param G: nx.Graph()-object
+        :param actions: possible actions
+        :param ax1: Subplot
+        :param ax2: Subplot
+        :param ax3: Subplot
+        :param ax4: Subplot
+        :param fig: wrapper around plot
+        :param parameters: Inputs from parameters.txt
+        :param random_episodes: a dict of episodes with 1 or 0 as values
+        """
         # Resetting the plot.
         if self.counter < len(actions) + 1:
             ax2.clear()
@@ -147,7 +174,7 @@ class Player:
                                 border_color[peg.pegNumber] = 'grey'
                 self.do_move(move)
 
-        # Making th final board and statistics
+        # Making the final board and statistics
         if self.counter == len(actions) + 1:
             ax1.change_geometry(2, 3, 1)
             ax2.change_geometry(2, 3, 2)
@@ -175,8 +202,18 @@ class Player:
             self.counter += 1
             fig.canvas.set_window_title('Peg Solitaire - RL')
 
-    # Plot if the game has no legal initial moves
     def show_illegal_game(self, G, actions, ax1, ax2, ax3, ax4, fig, parameters):
+        """ Plot if the game has no legal initial moves
+
+        :param G: nx.Graph()-object
+        :param actions: possible actions
+        :param ax1: Subplot
+        :param ax2: Subplot
+        :param ax3: Subplot
+        :param ax4: Subplot
+        :param fig: wrapper around plot
+        :param parameters: Inputs from parameters.txt
+        """
         color_map = {}
         border_color = {}
         for b in self.game.board:
@@ -217,10 +254,17 @@ class Player:
         ax3.set_visible(True)
         ax4.set_visible(True)
 
-    # Animating the game
     def show_game(self, actions, parameters, legal_game, random_episodes):
+        """ Animating the game
+
+        :param actions: List of actions in a path
+        :param parameters: Input from parameters.txt
+        :param legal_game: Boolean if game has a possible first move
+        :param random_episodes: a dict of episodes with 1 or 0 as values
+        """
         # Making the plots shown in the end
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(20, 11.2))
+
         # Hiding them until last plot
         ax1.set_visible(False)
         ax3.set_visible(False)
@@ -247,8 +291,12 @@ class Player:
         plt.show()
 
 
-# Finding coordinates of possible moves
 def legal_moves(diamond):
+    """ Finding coordinates of possible moves
+
+    :param diamond: Shape of the board
+    :return: A list of possible moves
+    """
     moves = [[(-1, 0), (-2, 0)], [(1, 0), (2, 0)], [(0, -1), (0, -2)], [(0, 1), (0, 2)]]
 
     if diamond:
@@ -261,8 +309,13 @@ def legal_moves(diamond):
     return moves
 
 
-# Checking if a move is legal
 def is_legal_move(game, move):
+    """ Checking if a move is legal
+
+    :param game: Board-object
+    :param move: A list of 3 tuples which is a move
+    :return: True if a move is legal
+    """
     start, jump, end = move[0], move[1], move[2]
 
     # Checking boundaries of the board
@@ -286,16 +339,27 @@ def is_legal_move(game, move):
     return True
 
 
-# Checking if peg in coordinates is filled
 def is_filled(game, coordinates):
+    """ Checking if peg in coordinates is filled
+
+    :param game: Board-object
+    :param coordinates: coordinates in the board
+    :return: True if a peg in a given set of coordinates is filled
+    """
     if game.board[coordinates[0]][coordinates[1]].filled:
         return True
 
     return False
 
 
-# Checking if coordinates are on line
 def is_on_line(start, jump, end):
+    """ Checking if coordinates are on line
+
+    :param start: tuple of start-coordinates
+    :param jump: tuple of jump-coordinates
+    :param end: tuple of end-coordinates
+    :return: Tru if the coordinates are on a straight line
+    """
     delta_row = jump[0] - start[0]
     delta_column = jump[1] - start[1]
     if end[0] == jump[0] + delta_row and end[1] == jump[1] + delta_column:
@@ -304,8 +368,12 @@ def is_on_line(start, jump, end):
     return False
 
 
-# Checking if there are more possible moves on the board
 def more_moves_available(game):
+    """ Checking if there are more possible moves on the board
+
+    :param game: Board-object
+    :return: True if there are more moves availible
+    """
     rows = game.layers
     columns = rows
     for row in range(rows):
@@ -324,8 +392,12 @@ def more_moves_available(game):
     return False
 
 
-# Parameters for the final plot
 def plot_parameters(ax, parameters):
+    """ Parameters for the final plot
+
+    :param ax: The axis that shows the plots
+    :param parameters: Input from parameters.txt
+    """
     ax.text(0.05, 1, "Parameters:", fontsize=14, fontweight='bold')
     ax.text(0.05, 0.9, ("Number of episodes: " + str(parameters[3])), fontsize=12)
     ax.text(0.05, 0.8, ("Initial epsilon (\u03B5): " + str(parameters[12])), fontsize=12)

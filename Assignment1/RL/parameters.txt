@@ -4,7 +4,7 @@ Board type (diamond or triangle): triangle
 
 Number of open cells (e.g 3 or list of open cells e.g [(1,2) (0,0)] ): [(2,1)]
 
-Number of episodes (e.g 100 or 500): 100
+Number of episodes (e.g 100 or 500): 10
 
 Type of critic (table or NN): NN
 

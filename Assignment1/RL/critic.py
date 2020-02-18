@@ -9,12 +9,15 @@ import time
 
 class Critic:
 
-    #  Initialize Critic-object
     def __init__(self, learning_rate, eligibility_rate, discount_factor, table_critic, layers_NN, size):
-        """
+        """ Initialize Critic-object
+
         :param learning_rate: Input from parameters.txt
         :param eligibility_rate: Input from parameters.txt
         :param discount_factor: Input from parameters.txt
+        :param table_critic: Input from parameters.txt
+        :param layers_NN: Input from parameters.txt
+        :param size: Input from parameters.txt
         """
         self.learning_rate = learning_rate
         self.eligibility_rate = eligibility_rate
@@ -29,8 +32,14 @@ class Critic:
         if not self.table_critic:
             self.model = self.build_model()
 
-    #  Calculate TD-error. Delta = reward if in goal state.
     def calculate_delta(self, reward, next_state, state):
+        """ Calculate TD-error according to δ ← r +γV(s')−V(s). Delta = reward if in goal state.
+
+        :param reward: int, reward in state
+        :param next_state: next state
+        :param state: current state
+        :return: int, TD-error
+        """
 
         if next_state is None:
             self.delta = reward
@@ -45,12 +54,20 @@ class Critic:
             self.delta = reward + self.discount_factor.numpy() * next_state_value - state_value
 
     def change_value(self, state, path, reward):
+        """ Calculate state-value based on formula: V(s) ← V(s)+ αcδe(s)
+
+        :param state: current state
+        :param path: path from state to end
+        :param reward: reward in state
+        """
 
         reward = tf.Variable(reward, dtype=tf.float32)
 
-        #  Update state-value based on formula: V(s) ← V(s)+ αcδe(s)
+        # For table-based:
         if self.table_critic:
             self.values[state] = self.values[state] + self.learning_rate * self.delta * self.eligibilities[state]
+
+        # For NN, fit for each state:
         else:
             for j in range(len(path)-1):
                 itt_state, itt_action = path[j]
@@ -63,17 +80,18 @@ class Critic:
 
                 self.model.fit([np.array(itt_state)], [target], self.delta, self.learning_rate, verbose=False)
 
-    #  Update eligibility value based on formula: e(s) ← γλe(s)
     def update_eligibility(self, state):
+        """ Update eligibility value based on formula: e(s) ← γλe(s)
+
+        :param state: current state
+        """
         self.eligibilities[state] = self.discount_factor.numpy() * self.eligibility_rate * self.eligibilities[state]
 
-    def get_value(self, state):
-        if self.table_critic:
-            return self.values[state]
-        else:
-            return self.model.model.predict(np.array([state]))
-
     def build_model(self):
+        """ Bulid the NN model using the SplitGD/keras model with given hidden nodes etc.
+
+        :return: The NN model
+        """
         model = Sequential()
 
         # Input layer to the model:
@@ -82,31 +100,13 @@ class Critic:
         for i in range(1, len(self.layers)):
             model.add(Dense(self.layers[i], activation='sigmoid'))
 
-        #sgd = SGD(learning_rate=0.9)
         model.compile(optimizer='sgd', loss='mean_squared_error', metrics=['accuracy'])
 
         return SplitGD(model)
 
     def reset_eligibilities(self):
+        """ Only resets eligibilities for table_based. NN better if not reset.
+        """
         if self.table_critic:
             for key in self.eligibilities.keys():
                 self.eligibilities[key] = 0
-        else:
-            self.model.eligebilities = [tf.math.multiply(self.model.eligebilities[i], self.zero) for i in range(len(self.eligibilities))]
-
-def time_func():
-    time_array = []
-
-    start_time = time.time()
-    check_time = time.time()
-    check_start_time = time.time()
-    time_array.append(time.time() - check_time)
-    check_time = time.time()
-
-    time_array.append((time.time() - check_time, "f"))
-    total = time.time() - check_start_time
-    time_array.append((total, "t"))
-    time_array = [(t[0] / total * 100, t[1]) for t in time_array]
-    print(time_array)
-    check_start_time = time.time()
-    time_array = []

@@ -4,9 +4,9 @@ from Assignment1.SimWorld.peg import Peg
 
 
 class Board(object):
-    # Initialize  Board-object
     def __init__(self, layers=3, diamond=False):
-        """
+        """ Initialize  Board-object
+
         :param layers: Size of the board
         :param diamond: Type of board
         """
@@ -15,16 +15,22 @@ class Board(object):
         self.board = make_graph(self.layers, self.diamond)
         self.set_neighbours()
 
-    # Sets the neighbours of a peg
     def set_neighbours(self):
+        """ Sets the neighbours of a peg
+        """
         for i in range(self.layers):
             for j in range(self.layers):
                 if self.board[i][j] is not None:
                     n = self.find_neighbourhood(i, j)
                     self.board[i][j].set_neighbours(n)
 
-    # Finds all the neighbours of a peg that set_neighbours then sets.
     def find_neighbourhood(self, row, col):
+        """ Finds all the neighbours of a peg that set_neighbours then sets.
+
+        :param row: int, row coordinate
+        :param col: int, col coordinate
+        :return: list of tuples, all neighbouring coordinates that are legal
+        """
         neighbourhood = []
         for i in range(6):
             if check_boundary(row - 1, col, self.layers, self.diamond) and i == 0:
@@ -48,17 +54,20 @@ class Board(object):
 
         return neighbourhood
 
-    # To initialize the open cells in the board
     def set_open_cells(self, open_cells):
+        """ To initialize the open cells in the board
+
+        :param open_cells: list of tuples, coordinates of open cells
+        """
         for r, c in open_cells:
             self.board[r][c].filled = False
 
 
-# To make the board itself.
 def make_graph(layers, diamond):
-    """
-    :param layers: Size of the board
-    :param diamond: Type of board
+    """ To make the board itself.
+
+    :param layers: int, Size of the board
+    :param diamond: boolean, Type of board
     :return: A list of Peg-objects
     """
     if diamond:
@@ -80,9 +89,9 @@ def make_graph(layers, diamond):
     return graph
 
 
-# Makes the upper half of a diamond. Takes "empty cells" into account.
 def make_upper_diamond(graph, layers, row, i, n):
-    """
+    """ Makes the upper half of a diamond. Takes "empty cells" into account.
+
     :param graph: The list of Pegs
     :param layers: Size
     :param row: What row currently being made
@@ -102,9 +111,9 @@ def make_upper_diamond(graph, layers, row, i, n):
     return graph, n
 
 
-# Makes the lower half of a diamond. Takes "empty cells" into account.
 def make_lower_diamond(graph, layers, row, i, n):
-    """
+    """ Makes the lower half of a diamond. Takes "empty cells" into account.
+
     :param graph: The list of Pegs
     :param layers: Size
     :param row: What row currently being made
@@ -123,9 +132,10 @@ def make_lower_diamond(graph, layers, row, i, n):
         col += 1
     return graph, n
 
-# Makes a triangle. Takes "empty cells" into account.
+
 def make_triangle(graph, layers, row, i, n):
-    """
+    """Makes a triangle. Takes "empty cells" into account.
+
     :param graph: The list of Pegs
     :param layers: Size
     :param row: What row currently being made
@@ -145,9 +155,9 @@ def make_triangle(graph, layers, row, i, n):
     return graph, n
 
 
-# Sorts the graph in the manner that networkx prefers.
 def sort_color(pos, color_map, border_color):
-    """
+    """ Sorts the graph in the manner that networkx prefers.
+
     :param pos: Node attribute position
     :param color_map: Dict of pegnumbers and colors for nodes
     :param border_color: Dict of pegnumbers and colors for node borders
@@ -162,8 +172,15 @@ def sort_color(pos, color_map, border_color):
     return new_map, new_border
 
 
-# Checks if a tuple of coordinates is within the boundaries of the board.
 def check_boundary(row, col, layers, diamond):
+    """ Checks if a tuple of coordinates is within the boundaries of the board.
+
+    :param row: row coordinate
+    :param col: col coordinate
+    :param layers: size
+    :param diamond: board-shape
+    :return: True if the coordinates is within the boundaries of the board
+    """
     if row < 0 or col < 0:
         return False
     elif row >= layers or col >= layers:
@@ -173,8 +190,12 @@ def check_boundary(row, col, layers, diamond):
     return True
 
 
-# Just in case we are asked to display a board on the demo.
 def draw_board(board):
+    """ Just in case we are asked to display a board on the demo.
+
+    :param board: the Board-object
+    :return: Displays a board
+    """
     G = nx.Graph()
     color_map = {}
     border_color = {}

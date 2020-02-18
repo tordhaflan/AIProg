@@ -15,23 +15,36 @@ import numpy as np
 class SplitGD():
 
     def __init__(self, keras_model):
-        self.model = keras_model
-        self.eligebilities = [tf.convert_to_tensor(np.zeros(self.model.trainable_weights[i].numpy().shape), dtype=tf.float32) for i in range(len(self.model.trainable_weights))]
+        """ Initialize SplitGD-object
 
-    # Subclass this with something useful.
+        :param keras_model: tensorflow.keras-model
+        """
+        self.model = keras_model
+        self.eligebilities = [tf.convert_to_tensor(np.zeros(self.model.trainable_weights[i].numpy().shape),
+                                                   dtype=tf.float32) for i in range(len(self.model.trainable_weights))]
+
     def modify_gradients(self, gradients, learning_rate, td_error):
+        """ Calculates the change in the weight and eligibility updates according to ei ← ei + ∂V(st)/∂wi
+        and wi ← wi +αδei.
+
+
+        :param gradients: tape.gradients of loss and weights
+        :param learning_rate: Input from parameters.txt
+        :param td_error: δ ← r +γV(s')−V(s) calculated in critic
+        :return: the amount of change in the weights of the NN
+        """
         change = tf.Variable(learning_rate * td_error, dtype=tf.float32)
-        for i in range(0,len(self.eligebilities),2):
+        for i in range(0,len(self.eligebilities), 2):
             self.eligebilities[i] = tf.math.subtract(self.eligebilities[i], gradients[i])
 
-        self.eligebilities = [tf.math.multiply(self.eligebilities[i], change) for i in range(len(self.eligebilities))]
+        delta_weights = [tf.math.multiply(self.eligebilities[i], change) for i in range(len(self.eligebilities))]
 
-        return self.eligebilities
+        return delta_weights
 
     # This returns a tensor of losses, OR the value of the averaged tensor.  Note: use .numpy() to get the
     # value of a tensor. features = state, target = reward+discount factor*value(next state)
     def gen_loss(self, features, targets, avg=False):
-        predictions = self.model(features[0:1])# Feed-forward pass to produce outputs/predictions
+        predictions = self.model(features[0:1])  # Feed-forward pass to produce outputs/predictions
         loss = self.model.loss_functions[0](targets, predictions)
         return tf.reduce_mean(loss).numpy() if avg else loss
 
@@ -72,8 +85,8 @@ class SplitGD():
         if len(val_ins) > 0:
             self.status_display(val_ins, val_targs, mode='Validation')
 
-# A few useful auxiliary functions
 
+# A few useful auxiliary functions
 def gen_random_minibatch(inputs, targets, mbs=1):
     indices = np.random.randint(len(inputs), size=mbs)
     return inputs[indices], targets[indices]

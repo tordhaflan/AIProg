@@ -1,8 +1,8 @@
 class Peg(object):
 
-    # Initialize Peg-object
     def __init__(self, x, y, row, col, number,  filled=True):
-        """
+        """ Initialize Peg-object
+
         :param x: x-coordinate
         :param y: y-coordinate
         :param row: row-number
@@ -16,7 +16,10 @@ class Peg(object):
         self.filled = filled
         self.pegNumber = number
 
-    # Appends neighbouring peg to the list of neighbours
     def set_neighbours(self, neighbours):
+        """ Appends neighbouring peg to the list of neighbours
+
+        :param neighbours: a list of neighbouring Pegs
+        """
         for n in neighbours:
             self.neighbours.append(n)

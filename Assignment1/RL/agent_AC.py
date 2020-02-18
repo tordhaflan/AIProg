@@ -11,9 +11,9 @@ from Assignment1.RL.read import read_parameters_file
 
 class Agent:
 
-    #  Initialize Agent-object with parameters
     def __init__(self, parameters):
-        """
+        """ Initialize Agent-object with parameters
+
         :param parameters: [size, board_type, open_cells, episodes, layers_NN, initial_epsilon,
                             actor_learning_rate, actor_eligibility_rate, actor_discount_factor,
                             critic_learning_rate, critic_eligibility_rate, critic_discount_factor]
@@ -32,8 +32,13 @@ class Agent:
         self.epsilon = copy.deepcopy(self.initial_epsilon)
         self.initial_state = self.sim_world.get_binary_board()  # tuple (converts playboard to a long tuple)
 
-    #  The learning process itself. Taken from pseudo-code in actor-critic.pdf
     def train(self, display=True):
+        """ The learning process itself. Taken from pseudo-code in actor-critic.pdf.
+            Updates actor and critic-values
+
+        :param display: True if last episode
+        :return: int pegs_left[-1], number of pegs in last episode
+        """
         start_time = time.time()
         sys.stdout.write("Training started")
         sys.stdout.flush()
@@ -60,7 +65,7 @@ class Agent:
                 if i >= k * self.episodes:
                     self.epsilon = self.initial_epsilon * (1-k)
                     sys.stdout.write("\rProgress in training: " + str(round(k*100)) + "% | " +
-                    "Time spent: " + str(round(time.time()-start_time)) + "s")
+                                     "Time spent: " + str(round(time.time()-start_time)) + "s")
                     sys.stdout.flush()
                     k += 0.05
                 if i == self.episodes-1:
@@ -68,20 +73,15 @@ class Agent:
                     sys.stdout.write("\r Trainig done. Total time: {}m {}s \n".format(int(m), int(s)))
                     self.epsilon = 0
 
-            #TODO
-            # ?!?!RESET CRITIC_ELIGIBILITIES TO ZERO OR NOT FOR NN?!?!
-            #Set e to 0. Set to 1 later if state is visited
+            # Set e to 0. Set to 1 later if state is visited. Only reset critic e to 0 if table_critic.
             self.actor.reset_eligibilities()
-            #self.critic.reset_eligibilities()
+            self.critic.reset_eligibilities()
 
             # First move
             action, self.random_episodes = get_best_action(self.actor.values, state, initial_actions,
                                                            self.epsilon, self.random_episodes, i)
 
             path.append((state, action))
-
-            #TODO
-            # Flyttes inn i whilen slik at vi følger pseudo og endrer state i første linje
 
             # Runs until it reaches a final state.
             while not self.sim_world.game_over():
@@ -94,13 +94,14 @@ class Agent:
 
                 if not self.sim_world.game_over():
                     next_action, self.random_episodes = get_best_action(self.actor.values, next_state, actions,
-                                                                       self.epsilon, self.random_episodes, i)
+                                                                        self.epsilon, self.random_episodes, i)
 
                 else:
                     next_action = None
 
                 path.append((next_state, next_action))
 
+                # For table-based critic:
                 if self.critic.table_critic:
                     self.actor.eligibilities[state + action] = 1
                     self.critic.calculate_delta(reward, next_state, state)
@@ -112,6 +113,8 @@ class Agent:
                         self.critic.update_eligibility(itt_state)
                         self.actor.change_value(itt_state, itt_action, self.critic.delta)
                         self.actor.update_eligibility(itt_state, itt_action)
+
+                # For NN, do not update critic eligibility, but train NN.
                 else:
                     self.actor.eligibilities[state + action] = 1
                     self.critic.calculate_delta(reward, next_state, state)
@@ -125,6 +128,7 @@ class Agent:
                 state = next_state
                 action = next_action
 
+            # To reset the board for training.
             self.sim_world.game = copy.deepcopy(self.sim_world.initial_game)
 
         final_path = [a for s, a in path]
@@ -134,8 +138,10 @@ class Agent:
         return self.sim_world.pegs_left[-1]
 
 
-# Runs and trains the agent
 def main():
+    """ Runs and trains the agent based on parameters.txt
+    """
+
     parameters = read_parameters_file()
     layers = parameters[0]-1
     diamond = parameters[1]
@@ -150,18 +156,18 @@ def main():
             open_cells.append((r, c))
         parameters[2] = open_cells
 
-        agent = Agent(parameters)
-        agent.train()
+    agent = Agent(parameters)
+    agent.train()
 
 
-
-# Finds the best next action for a given state. Initialize with first possible action to avoid None-move.
 def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
-    """
+    """ Finds the best next action for a given state. Initialize with first possible action to avoid None-move.
     :param actor_values: SAP-values
     :param state: Current state
     :param actions: Possible actions
-    :param epsilon:
+    :param epsilon: randomness value
+    :param random_moves: list with episode number where random move has been done.
+    :param i: episode
     :return: Best action or random action
     """
     value = actor_values[state + actions[0]]
@@ -178,10 +184,19 @@ def get_best_action(actor_values, state, actions, epsilon, random_moves, i):
     else:
         return best_action, random_moves
 
+
 def new_state(values, state, actions):
+    """ Return true if state has not been visited before
+
+    :param values: Actor-values
+    :param state: Next state
+    :param actions: possible actions
+    :return: True if state has not been visited before
+    """
     for action in actions:
         if values.keys().__contains__(state+action):
             return False
     return True
+
 
 main()
