@@ -26,7 +26,7 @@ class Player:
         self.initial_game = copy.deepcopy(self.game)
 
     def get_binary_board(self):
-        """ Creating the binary tuple list that is used in calculations in agent_MC.py
+        """ Creating the binary tuple list that is used in calculations in agent_AC.py
 
         :return: A binary tuple of filled pegs and empty nodes
         """
@@ -108,7 +108,7 @@ class Player:
             return 0
 
     def update(self, num, G, actions, ax1, ax2, ax3, ax4, fig, parameters, random_episodes):
-        """ The function that updates the board.
+        """ The function that updates the animation.
 
         :param G: nx.Graph()-object
         :param actions: possible actions

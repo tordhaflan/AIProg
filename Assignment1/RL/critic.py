@@ -1,10 +1,9 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import SGD
 from Assignment1.RL.SplitGD import SplitGD
 import numpy as np
 import tensorflow as tf
-import time
+
 
 
 class Critic:
