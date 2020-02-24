@@ -1,11 +1,16 @@
 import random
+import copy
 
 
 class Ledge:
 
     def __init__(self, initial_board):
 
-        self.initial_board = initial_board
+        if len(initial_board) == 0:
+            size = random.randint(0, 20)
+            self.initial_board = init_board(size, random.randint(0, size-1))
+        else:
+            self.initial_board = initial_board
         self.board = initial_board
 
     def do_move(self, move):
@@ -37,20 +42,26 @@ class Ledge:
     def child_actions(self):
         actions = []
         if self.board[0] > 0:
-            actions.append((0,0))
+            actions.append((0, 0))
 
         c = 0
-        for i in range(len(self.board)-1, -1, -1):
+        for i in range(len(self.board) - 1, -1, -1):
             if self.board[i] > 0:
                 c = i
             elif c > 0 and self.board[i] == 0:
                 actions.append((c, i))
         return actions
 
+    def reset_game(self):
+        self.board = copy.deepcopy(self.initial_board)
+
+    def set_game(self, board):
+        self.board = board
+
 
 def init_board(length, copper):
     board = [0 for i in range(0, length)]
-    gold = random.randint(0, length-1)
+    gold = random.randint(0, length - 1)
     board[gold] = 2
 
     if (copper >= 0) and (copper < length):

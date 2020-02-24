@@ -1,3 +1,5 @@
+import copy
+
 
 class Nim:
 
@@ -16,15 +18,19 @@ class Nim:
         return True if move <= self.heap and move <= self.max_action else False
 
     def game_over(self):
-        """
-        May use this implemntation, depends on the game structure
-        if self.heap == 0:
-            self.heap = self.heap_size
-            return True
-        else:
-            return False
-        """
         return True if self.heap == 0 else False
+
+    def child_actions(self):
+        if self.heap > self.max_action:
+            return [i for i in range(self.max_action)]
+        else:
+            return [i for i in range(self.heap)]
+
+    def reset_game(self):
+        self.heap = copy.deepcopy(self.heap_size)
+
+    def set_game(self, state):
+        self.heap = state
 
     def play_game(self):
         sign = 1
@@ -41,13 +47,13 @@ class Nim:
             move = int(input("How many pieces du you want to remove? "))
 
             self.do_move(move)
-            if move > self.heap+move:
+            if move > self.heap + move:
                 print("\nYou cant remove more pices then is left on the heap! \n")
             elif heap == self.heap:
                 print("\nIllegal move, the move has to be <=", self.max_action, ", try another move!\n")
             else:
                 self.player += sign
-                sign = -1*sign
+                sign = -1 * sign
 
         self.player += sign * self.player
         print("\nCongratulation player {}, you won!".format(self.player))

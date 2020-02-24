@@ -5,6 +5,9 @@ class MCTS:
     def __init__(self):
         pass
 
+    def simulate(self):
+        pass
+
     def tree_search(self):
         pass
 
@@ -17,3 +20,11 @@ class MCTS:
 
     def backpropagation(self):
         pass
+
+class State:
+
+    def __init__(self):
+        self.children = []
+        self.parent = []
+        self.visits = 0
+        self.is_final_state = False
