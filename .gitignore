@@ -13,6 +13,8 @@ Assignment2/__pycache__/
 env/
 venv/
 .idea/
+.idea/IT3105.iml
+.idea/misc.xml
 build/
 develop-eggs/
 dist/
