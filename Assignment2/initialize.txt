@@ -1,4 +1,4 @@
-Type of game (Nim or Ledge): Nim
+Type of game (Nim or Ledge): Ledge
 
 Batch size: 100
 
@@ -14,5 +14,4 @@ Initial board (empty [] or initial bord): [0,1,0,0,1,1,2,1,0,1,0,1,1]
 
 Verbose (true or false): false
 
-
-
+Haflan er bøg
