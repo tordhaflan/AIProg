@@ -62,6 +62,6 @@ class Nim:
         print("\nCongratulation player {}, you won!".format(self.player))
 
 
-n = Nim(40, 7)
+#n = Nim(40, 7)
 
-n.play_game()
+#n.play_game()

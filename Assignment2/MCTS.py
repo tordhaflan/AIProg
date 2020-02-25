@@ -27,4 +27,5 @@ class State:
         self.children = []
         self.parent = []
         self.visits = 0
+        self.player = 1
         self.is_final_state = False

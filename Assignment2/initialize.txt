@@ -14,4 +14,3 @@ Initial board (empty [] or initial bord): [0,1,0,0,1,1,2,1,0,1,0,1,1]
 
 Verbose (true or false): false
 
-Lalalallalala git

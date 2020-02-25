@@ -38,4 +38,4 @@ def read_parameters_file():
 
     return param
 
-print(read_parameters_file())
+# print(read_parameters_file())
