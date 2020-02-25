@@ -58,6 +58,9 @@ class Ledge:
     def set_game(self, board):
         self.board = board
 
+    def get_state(self):
+        return self.board
+
 
 def init_board(length, copper):
     board = [0 for i in range(0, length)]

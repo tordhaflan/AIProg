@@ -32,6 +32,9 @@ class Nim:
     def set_game(self, state):
         self.heap = state
 
+    def get_state(self):
+        return self.heap
+
     def play_game(self):
         sign = 1
         """
