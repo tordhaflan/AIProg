@@ -1,4 +1,4 @@
-Type of game (Nim or Ledge): Ledge
+Type of game (Nim or Ledge): Nim
 
 Batch size: 100
 
