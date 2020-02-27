@@ -61,8 +61,12 @@ class Ledge:
     def get_state(self):
         return self.board
 
+    def get_initial_state(self):
+        return self.initial_board
+
 
 def init_board(length, copper):
+
     board = [0 for i in range(0, length)]
     gold = random.randint(0, length - 1)
     board[gold] = 2

@@ -35,6 +35,9 @@ class Nim:
     def get_state(self):
         return self.heap
 
+    def get_initial_state(self):
+        return self.heap_size
+
     def play_game(self):
         sign = 1
         """
@@ -60,8 +63,3 @@ class Nim:
 
         self.player += sign * self.player
         print("\nCongratulation player {}, you won!".format(self.player))
-
-
-n = Nim(40, 7)
-
-n.play_game()

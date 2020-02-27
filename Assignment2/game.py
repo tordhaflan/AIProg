@@ -1,11 +1,12 @@
+import random
+
 from Assignment2.Nim import Nim
 from Assignment2.Ledge import Ledge
-import copy
-
+from Assignment2.read_initialization import read_parameters_file
 
 class Game:
 
-    def __init__(self, params):
+    def __init__(self, params=read_parameters_file()):
         self.game_type = params[0]
         self.batches = params[1]
         self.simulations = params[2]
@@ -17,19 +18,42 @@ class Game:
         else:
             self.game = Ledge(params[4])
 
+    def get_initial_state(self):
+        return self.game.get_initial_state()
+
     def get_child_states(self):
         states = []
         actions = self.game.child_actions()
-        game = self.game.get_state()
 
         for a in actions:
-            states.append((self.game.do_move(a), a))
+            game = self.game.get_state()
+            states.append(self.game.do_move(a))
             self.game.set_game(game)
-
         return states
 
-    def game_over(self):
-        return self.game.game_over()
+    def get_actions(self):
+        return self.game.child_actions()
+
+    def get_random_action(self):
+        actions = self.game.child_actions()
+        return actions[random.randint(0, len(actions)-1)]
+
+    def is_win(self):
+        check = self.game.game_over()
+        if check:
+            self.game.reset_game()
+
+        return check
 
     def do_action(self, action):
         self.game.do_move(action)
+
+
+g = Game()
+
+print(g.game.heap)
+
+g.do_action(6)
+print(g.game.heap)
+g.do_action(10)
+print(g.game.heap)
