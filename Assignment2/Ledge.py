@@ -13,6 +13,7 @@ class Ledge:
             self.initial_board = initial_board
         self.board = initial_board
 
+    # Et move er på formen (from possition, to possition)
     def do_move(self, move):
         if self.legal_move(move):
             coin = self.board[move[0]]

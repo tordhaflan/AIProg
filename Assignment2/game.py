@@ -4,6 +4,7 @@ from Assignment2.Nim import Nim
 from Assignment2.Ledge import Ledge
 from Assignment2.read_initialization import read_parameters_file
 
+
 class Game:
 
     def __init__(self, params=read_parameters_file()):
@@ -48,12 +49,16 @@ class Game:
     def do_action(self, action):
         self.game.do_move(action)
 
+    # Tenkte det er greit at man bare kan kalle på game-objectet sin state.
+    def get_state(self):
+        return self.game.get_state()
+
 
 g = Game()
 
-print(g.game.heap)
+print(g.get_state())
 
-g.do_action(6)
-print(g.game.heap)
-g.do_action(10)
-print(g.game.heap)
+g.do_action((4,3))
+print(g.get_state())
+g.do_action((3,2))
+print(g.get_state())
