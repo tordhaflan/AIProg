@@ -27,9 +27,10 @@ class Game:
         for i in range(self.batches):
             print(self.game.print(self.game.state, None))
 
-            while not self.game.game_over():
-                self.mcts.simulate(self.episodes)
-                action = self.mcts.get_action(self.game.state)
+            while not self.game.game_over(self.game.state):
+                #self.mcts.simulate(self.episodes)
+                #action = self.mcts.get_action(self.game.state)
+                action = self.get_random_action(self.game.state)
                 string = self.game.print(self.game.state, action)
                 self.game.state = self.game.do_move(self.game.state, action)
                 if self.verbose:
@@ -74,8 +75,4 @@ class Game:
 
 
 g = Game()
-print(g.get_state())
-g.do_action(g.game.state,(4,3))
-print(g.get_state())
-g.do_action(g.game.state,(3,2))
-print(g.get_state())
+g.run()

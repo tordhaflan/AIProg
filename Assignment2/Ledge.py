@@ -56,13 +56,13 @@ class Ledge:
     def print(self, state, move):
         if move is None:
             return "Start Board: " + str(self.initial_board)
-        elif move[1] == 0:
-            return "picks up copper " if state[0] == 1 else "picks up gold "
+        elif move[0] == 0:
+            return " picks up copper " if state[0] == 1 else " picks up gold "
         else:
             if state[move[0]] == 1:
-                return "moves copper from cell " + str(move[0]) + " to " + str(move[1])
+                return " moves copper from cell " + str(move[0]) + " to " + str(move[1]) + ": "
             else:
-                return "moves gold from cell " + str(move[0]) + " to " + str(move[1])
+                return " moves gold from cell " + str(move[0]) + " to " + str(move[1]) + ": "
 
     def reset_game(self):
         self.state = copy.deepcopy(self.initial_board)

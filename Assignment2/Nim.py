@@ -15,22 +15,22 @@ class Nim:
         return state
 
     def legal_move(self, state, move):
-        return True if move <= state and move <= self.max_action else False
+        return True if move <= state and move <= self.max_action and move > 0 else False
 
     def game_over(self, state):
         return True if state == 0 else False
 
     def child_actions(self, state):
         if state > self.max_action:
-            return [i for i in range(self.max_action)]
+            return [i for i in range(1, self.max_action + 1)]
         else:
-            return [i for i in range(state)]
+            return [i for i in range(1, state + 1)]
 
     def print(self, state, move):
         if move is None:
-            return "Start Pil: " + str(state) + " stones."
+            return "Start Pile: " + str(state) + " stones"
         else:
-            return " selects " + str(move) + "stones: Remaining stones = "
+            return " selects " + str(move) + " stones: Remaining stones = "
 
 
     def reset_game(self):
