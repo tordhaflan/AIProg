@@ -13,7 +13,7 @@ class Game:
         self.game_type = params[0]
         self.batches = params[1]
         self.episodes = params[2]
-        self.player = params[3]
+        self.initial_player = params[3]
         self.verbose = params[-1]
         self.winner = []
 
@@ -26,6 +26,7 @@ class Game:
 
     def run(self):
         for i in range(self.batches):
+            player = copy.deepcopy(self.initial_player)
             if i % 10 == 0:
                 print(i)
             if self.verbose:
@@ -37,16 +38,16 @@ class Game:
                 string = self.game.print(self.game.state, action)
                 self.game.state = self.game.do_move(self.game.state, action)
                 if self.verbose:
-                    print("P" + str(self.player) + string + str(self.game.state))
+                    print("P" + str(player) + string + str(self.game.state))
 
-                self.player = (self.player % 2) + 1
+                player = (player % 2) + 1
 
                 self.mcts = MCTS(self, self.game.state)
 
             if self.verbose:
-                print("Player " + str(self.player % 2 + 1) + " wins")
+                print("Player " + str(player % 2 + 1) + " wins")
 
-            self.winner.append(self.player % 2 + 1)
+            self.winner.append(player % 2 + 1)
 
             self.game.reset_game()
             self.mcts = MCTS(self, self.game.state)

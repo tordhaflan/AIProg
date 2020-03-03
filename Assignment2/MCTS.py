@@ -8,23 +8,18 @@ class MCTS:
     def __init__(self, game, state):
         self.game_manager = game
         # self.game_manager = Game(['Ledge', 100, 50, 1, [0, 1, 0, 0, 1, 1, 2, 1, 0, 1, 0, 1, 1], False])
-        self.root_node = Node(state, True)
+        self.root_node = Node(state, None)
 
     def simulate(self, m):
         self.expansion(self.root_node)
         for i in range(m):
             leaf = self.tree_search()
-            #TODO
-            # Vil alltid gå inn her hvis child state er final og dermed ikke expande alle barn, som vil utløse exeption i get_action
             if leaf.is_final_state:
                 reward = self.evaluation(leaf)
                 self.backpropagation(leaf, reward)
             elif len(leaf.children) == 0:
                 self.expansion(leaf)
-                if len(leaf.children) != 1:
-                    child = leaf.children[random.randint(0, len(leaf.children)-1)]
-                else:
-                    child = leaf.children[0]
+                child = leaf.children[random.randint(0, len(leaf.children)-1)-1]
                 reward = self.evaluation(child)
                 child.visits += 1
                 self.backpropagation(child, reward)
@@ -37,10 +32,7 @@ class MCTS:
                         break
                 if leaf.visits == len(leaf.children) + 1:
                     leaf.is_expanded = True
-                    print([s.is_expanded for s in leaf.children])
-                    print(len(leaf.children)+1)
-                    print(i)
-        print(i)
+
 
     def tree_search(self):
         leaf = False
@@ -60,8 +52,6 @@ class MCTS:
     # Funker ikke helt enda, barna har samme state som parent.
     def expansion(self, leaf):
         children = self.game_manager.get_child_action_pair(leaf.state)
-        if (leaf.state == 2):
-            print(children)
         if len(children) != 0:
             leaf.children = [Node(state, action) for state, action in children]
             for child in leaf.children:
@@ -82,10 +72,7 @@ class MCTS:
             action = self.game_manager.get_random_action(state)
             state = self.game_manager.do_action(state, action)
 
-        if number_of_moves == 0:
-            return 1
-        else:
-            return -1 if number_of_moves % 2 == 0 else 1
+        return 1 if number_of_moves % 2 == 0 else -1
 
     def backpropagation(self, leaf, reward):
         node = leaf
@@ -96,16 +83,10 @@ class MCTS:
             node = node.parent
 
     def get_action(self):
-        value = 0
-        best_action = None
-        for child in self.root_node.children:
-            if child.is_final_state:
-                return child.action
-            elif max(child.q_values.values()) >= value:
-                value = max(child.q_values.values())
-                best_action = child.action
-
-        return best_action
+        max_val = max(self.root_node.q_values.values())
+        for action, value in self.root_node.q_values.items():
+            if value == max_val:
+                return action
 
 
 # Endret til Node for å få bedre oversikt selv og for å slippe State.state.
