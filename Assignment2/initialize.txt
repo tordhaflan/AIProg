@@ -1,8 +1,8 @@
 Type of game (Nim or Ledge): Nim
 
-Batch size: 1
+Batch size: 100
 
-Number of simulations: 50
+Number of simulations: 500
 
 Player to start: 1
 

@@ -15,45 +15,59 @@ class Game:
         self.episodes = params[2]
         self.player = params[3]
         self.verbose = params[-1]
+        self.winner = []
 
         if self.game_type == "Nim":
             self.game = Nim(params[4], params[5])
         else:
             self.game = Ledge(params[4])
 
-        self.mcts = MCTS(self)
+        self.mcts = MCTS(self, self.game.state)
 
     def run(self):
         for i in range(self.batches):
-            print(self.game.print(self.game.state, None))
+            if i % 10 == 0:
+                print(i)
+            if self.verbose:
+                print(self.game.print(self.game.state, None))
 
             while not self.game.game_over(self.game.state):
-                #self.mcts.simulate(self.episodes)
-                #action = self.mcts.get_action(self.game.state)
-                action = self.get_random_action(self.game.state)
+                self.mcts.simulate(self.episodes)
+                action = self.mcts.get_action()
                 string = self.game.print(self.game.state, action)
                 self.game.state = self.game.do_move(self.game.state, action)
                 if self.verbose:
                     print("P" + str(self.player) + string + str(self.game.state))
 
-                self.mcts.reset_values()
                 self.player = (self.player % 2) + 1
 
-            print("Player " + str(self.player % 2 + 1) + " wins")
+                self.mcts = MCTS(self, self.game.state)
+
+            if self.verbose:
+                print("Player " + str(self.player % 2 + 1) + " wins")
+
+            self.winner.append(self.player % 2 + 1)
 
             self.game.reset_game()
+            self.mcts = MCTS(self, self.game.state)
+
+        print("Player 1 wins: ", self.winner.count(1))
+        print("Player 2 wins: ", self.winner.count(2))
 
     def get_initial_state(self):
         return self.game.get_initial_state()
 
     def get_child_action_pair(self, state):
-        states = []
-        actions = self.game.child_actions()
-
-        for a in actions:
-            new_state = copy.deepcopy(state)
-            states.append((self.game.do_move(new_state, a), a))
-        return states
+        if self.game.game_over(state):
+            return []
+        else:
+            states = []
+            actions = self.game.child_actions(state)
+            for a in actions:
+                new_state = copy.deepcopy(state)
+                states.append((self.game.do_move(new_state, a), a))
+            print(state, states)
+            return states
 
     def get_actions(self, state):
         return self.game.child_actions(state)
