@@ -11,58 +11,69 @@ class Ledge:
             self.initial_board = init_board(size, random.randint(0, size-1))
         else:
             self.initial_board = initial_board
-        self.board = initial_board
+        self.state = initial_board
 
     # Et move er på formen (from possition, to possition)
-    def do_move(self, move):
+    def do_move(self, state, move):
         if self.legal_move(move):
-            coin = self.board[move[0]]
+            coin = state[move[0]]
             if move[0] == 0:
-                self.board[0] = 0
-                return self.board
-            self.board[move[0]] = 0
-            self.board[move[1]] = coin
+                state[0] = 0
+                return state
+            state[move[0]] = 0
+            state[move[1]] = coin
 
-            return self.board
+            return state
 
-        return self.board
+        return state
 
-    def legal_move(self, move):
+    def legal_move(self, state, move):
         if move[0] == 0 and move[1] == 0:
-            return True if self.board[0] > 0 else False
-        if move[0] > move[1] and self.board[move[0]] > 0:
+            return True if state[0] > 0 else False
+        if move[0] > move[1] and state[move[0]] > 0:
             for i in range(move[1], move[0]):
-                if not self.board[i] == 0:
+                if not state[i] == 0:
                     return False
             return True
         return False
 
-    def game_over(self):
-        return True if 2 not in self.board else False
+    def game_over(self, state):
+        return True if 2 not in state else False
 
-    def child_actions(self):
+    def child_actions(self, state):
         actions = []
-        if self.board[0] > 0:
+        if state[0] > 0:
             actions.append((0, 0))
 
         c = 0
-        for i in range(len(self.board) - 1, -1, -1):
-            if self.board[i] > 0:
+        for i in range(len(state) - 1, -1, -1):
+            if state[i] > 0:
                 c = i
-            elif c > 0 and self.board[i] == 0:
+            elif c > 0 and state[i] == 0:
                 actions.append((c, i))
         return actions
 
-    def reset_game(self):
-        self.board = copy.deepcopy(self.initial_board)
+    def print(self, state, move):
+        if move is None:
+            return "Start Board: " + str(self.initial_board)
+        elif move[1] == 0:
+            return "picks up copper " if state[0] == 1 else "picks up gold "
+        else:
+            if state[move[0]] == 1:
+                return "moves copper from cell " + str(move[0]) + " to " + str(move[1])
+            else:
+                return "moves gold from cell " + str(move[0]) + " to " + str(move[1])
 
-    def set_game(self, board):
-        self.board = board
+    def reset_game(self, state):
+        state = copy.deepcopy(self.initial_board)
 
-    def get_state(self):
-        return self.board
+    def set_game(self, board, state):
+        state = board
 
-    def get_initial_state(self):
+    def get_state(self, state):
+        return state
+
+    def get_initial_state(self, state):
         return self.initial_board
 
 
