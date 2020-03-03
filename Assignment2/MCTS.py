@@ -14,6 +14,8 @@ class MCTS:
         self.expansion(self.root_node)
         for i in range(m):
             leaf = self.tree_search()
+            #TODO
+            # Vil alltid gå inn her hvis child state er final og dermed ikke expande alle barn, som vil utløse exeption i get_action
             if leaf.is_final_state:
                 reward = self.evaluation(leaf)
                 self.backpropagation(leaf, reward)
@@ -35,6 +37,10 @@ class MCTS:
                         break
                 if leaf.visits == len(leaf.children) + 1:
                     leaf.is_expanded = True
+                    print([s.is_expanded for s in leaf.children])
+                    print(len(leaf.children)+1)
+                    print(i)
+        print(i)
 
     def tree_search(self):
         leaf = False
@@ -54,6 +60,8 @@ class MCTS:
     # Funker ikke helt enda, barna har samme state som parent.
     def expansion(self, leaf):
         children = self.game_manager.get_child_action_pair(leaf.state)
+        if (leaf.state == 2):
+            print(children)
         if len(children) != 0:
             leaf.children = [Node(state, action) for state, action in children]
             for child in leaf.children:
@@ -91,13 +99,13 @@ class MCTS:
         value = 0
         best_action = None
         for child in self.root_node.children:
-            print(child.q_values.values())
             if child.is_final_state:
                 return child.action
-            elif max(child.q_values.values()) > value:
+            elif max(child.q_values.values()) >= value:
                 value = max(child.q_values.values())
                 best_action = child.action
-                return best_action
+
+        return best_action
 
 
 # Endret til Node for å få bedre oversikt selv og for å slippe State.state.
@@ -116,8 +124,8 @@ class Node:
 
 
 def get_best_child(node, max=True):
-    best_child = None
-    best_value = -1000 if max else 1000
+    best_child = node.children[0]
+    best_value = node.q_values[best_child.action] + np.sqrt(np.log(node.visits) / (1 + best_child.visits))
     for child in node.children:
         if max:
             value = node.q_values[child.action] + np.sqrt(np.log(node.visits) / (1 + child.visits))
@@ -129,5 +137,4 @@ def get_best_child(node, max=True):
             if value < best_value:
                 best_value = value
                 best_child = child
-
     return best_child

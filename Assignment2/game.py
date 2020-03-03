@@ -66,7 +66,6 @@ class Game:
             for a in actions:
                 new_state = copy.deepcopy(state)
                 states.append((self.game.do_move(new_state, a), a))
-            print(state, states)
             return states
 
     def get_actions(self, state):
