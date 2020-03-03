@@ -75,7 +75,7 @@ class Game:
 
 g = Game()
 print(g.get_state())
-g.do_action((4,3))
+g.do_action(g.game.state,(4,3))
 print(g.get_state())
-g.do_action((3,2))
+g.do_action(g.game.state,(3,2))
 print(g.get_state())

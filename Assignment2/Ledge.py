@@ -15,7 +15,7 @@ class Ledge:
 
     # Et move er på formen (from possition, to possition)
     def do_move(self, state, move):
-        if self.legal_move(move):
+        if self.legal_move(state, move):
             coin = state[move[0]]
             if move[0] == 0:
                 state[0] = 0
@@ -64,16 +64,16 @@ class Ledge:
             else:
                 return "moves gold from cell " + str(move[0]) + " to " + str(move[1])
 
-    def reset_game(self, state):
-        state = copy.deepcopy(self.initial_board)
+    def reset_game(self):
+        self.state = copy.deepcopy(self.initial_board)
 
-    def set_game(self, board, state):
-        state = board
+    def set_game(self, state):
+        self.state = state
 
-    def get_state(self, state):
-        return state
+    def get_state(self):
+        return self.state
 
-    def get_initial_state(self, state):
+    def get_initial_state(self):
         return self.initial_board
 
 

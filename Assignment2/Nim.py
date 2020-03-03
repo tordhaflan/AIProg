@@ -10,7 +10,7 @@ class Nim:
         self.player = 1
 
     def do_move(self, state, move):
-        if self.legal_move(move):
+        if self.legal_move(state, move):
             state -= move
         return state
 
