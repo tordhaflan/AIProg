@@ -14,7 +14,7 @@ class Ledge:
         self.board = initial_board
 
     # Et move er på formen (from possition, to possition)
-    def do_move(self, move):
+    def do_move(self, state, move):
         if self.legal_move(move):
             coin = self.board[move[0]]
             if move[0] == 0:
@@ -27,12 +27,12 @@ class Ledge:
 
         return self.board
 
-    def legal_move(self, move):
+    def legal_move(self, state, move):
         if move[0] == 0 and move[1] == 0:
-            return True if self.board[0] > 0 else False
-        if move[0] > move[1] and self.board[move[0]] > 0:
+            return True if state[0] > 0 else False
+        if move[0] > move[1] and state[move[0]] > 0:
             for i in range(move[1], move[0]):
-                if not self.board[i] == 0:
+                if not state == 0:
                     return False
             return True
         return False

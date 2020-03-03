@@ -3,6 +3,8 @@ import random
 from Assignment2.Nim import Nim
 from Assignment2.Ledge import Ledge
 from Assignment2.read_initialization import read_parameters_file
+from Assignment2.MCTS import MCTS
+import copy
 
 
 class Game:
@@ -19,17 +21,18 @@ class Game:
         else:
             self.game = Ledge(params[4])
 
+        self.mcts = MCTS(self)
+
     def get_initial_state(self):
         return self.game.get_initial_state()
 
-    def get_child_states(self):
+    def get_child_states(self, state):
         states = []
-        actions = self.game.child_actions()
+        actions = self.game.child_actions(state)
 
         for a in actions:
-            game = self.game.get_state()
-            states.append(self.game.do_move(a))
-            self.game.set_game(game)
+            new_state = copy.deepcopy(state)
+            states.append(self.game.do_move(new_state,a))
         return states
 
     def get_actions(self):
