@@ -47,7 +47,7 @@ class Game:
 
     def get_child_action_pair(self, state):
         states = []
-        actions = self.game.child_actions(state)
+        actions = self.game.child_actions()
 
         for a in actions:
             new_state = copy.deepcopy(state)
