@@ -1,3 +1,5 @@
+import numpy as np
+
 class MCTS:
 
     def __init__(self, game):
@@ -77,4 +79,19 @@ class Node:
         self.is_expanded = False
         self.is_final_state = False
         self.q_values = {}
+
+
+def get_best_child(node, max=True):
+    best_child = None
+    best_value = 0 if max else 1000
+    for child in node.children:
+        value = node.q_values[child.action] + np.sqrt(np.log(node.visits) / (1 + child.visits))
+        if max and value > best_value:
+            best_value = value
+            best_child = child
+        elif not max and value < best_value:
+            best_value = value
+            best_child = child
+
+    return best_child
 
