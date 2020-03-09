@@ -47,15 +47,14 @@ class Game:
 
                 player = (player % 2) + 1
 
-                self.mcts = MCTS(self, self.game.state)
+                self.mcts.reset(copy.deepcopy(self.game.state))
 
             if self.verbose:
                 print("Player " + str(player % 2 + 1) + " wins")
 
             self.winner.append(player % 2 + 1)
-
             self.game.reset_game()
-            self.mcts = MCTS(self, self.game.state)
+            self.mcts.reset(self.game.state)
 
         print("Player 1 wins: ", self.winner.count(1))
         print("Player 2 wins: ", self.winner.count(2))
