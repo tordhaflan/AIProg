@@ -11,7 +11,7 @@ class Ledge:
             self.initial_board = init_board(size, random.randint(0, size-1))
         else:
             self.initial_board = initial_board
-        self.state = initial_board
+        self.state = self.initial_board
 
     # Et move er på formen (from possition, to possition)
     def do_move(self, state, move):

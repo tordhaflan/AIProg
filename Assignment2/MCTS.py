@@ -13,8 +13,10 @@ class MCTS:
     def simulate(self, m):
         self.expansion(self.root_node)
         for i in range(m):
+
             leaf = self.tree_search()
-            if leaf.is_final_state:
+
+            if self.game_manager.is_win(leaf.state):
                 reward = self.evaluation(leaf)
                 self.backpropagation(leaf, reward)
             elif len(leaf.children) == 0:
@@ -33,7 +35,6 @@ class MCTS:
                 if leaf.visits == len(leaf.children) + 1:
                     leaf.is_expanded = True
 
-
     def tree_search(self):
         leaf = False
         node = self.root_node
@@ -48,8 +49,6 @@ class MCTS:
         return node
 
     # Implementation of an expansion
-    # Finne ut hvor vi holder styr på .visits
-    # Funker ikke helt enda, barna har samme state som parent.
     def expansion(self, leaf):
         children = self.game_manager.get_child_action_pair(leaf.state)
         if len(children) != 0:
@@ -61,6 +60,7 @@ class MCTS:
                     child.is_final_state = True
         else:
             leaf.is_final_state = True
+
 
     # Implementation of rollout
     # As of now, we dont add the random path and therefor will not backpropagate this path (only from the leaf node and up)

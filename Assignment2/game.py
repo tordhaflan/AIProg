@@ -13,7 +13,10 @@ class Game:
         self.game_type = params[0]
         self.batches = params[1]
         self.episodes = params[2]
-        self.initial_player = params[3]
+        if params[3] == 3:
+            self.initial_player = random.randint(1, 3)
+        else:
+            self.initial_player = params[3]
         self.verbose = params[-1]
         self.winner = []
 
@@ -21,11 +24,13 @@ class Game:
             self.game = Nim(params[4], params[5])
         else:
             self.game = Ledge(params[4])
+            self.copy = self.game
 
         self.mcts = MCTS(self, self.game.state)
 
     def run(self):
         for i in range(self.batches):
+
             player = copy.deepcopy(self.initial_player)
             if i % 10 == 0:
                 print(i)
