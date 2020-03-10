@@ -149,7 +149,7 @@ class Node:
 
 
 def get_best_child(node, max=True):
-    """ Finds the next Node to visit in the tree search based on max or min player.
+    """Finds the next Node to visit in the tree search based on max or min player.
 
     :param node: Node, current node
     :param max: Boolean, max or min node
