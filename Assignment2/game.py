@@ -10,6 +10,12 @@ from Assignment2.MCTS import MCTS
 class Game:
 
     def __init__(self, params=read_parameters_file()):
+        """ Initialize game manager
+
+        :param params: For Nim - [Game name, batch size, number of simulations, player to start, heap size,
+                        max number of pices to remove, verbose]
+                    For Ledge - [Game name, batch size, number of simulations, player to start, initial board, verbose]
+        """
         self.game_type = params[0]
         self.batches = params[1]
         self.episodes = params[2]
@@ -29,6 +35,8 @@ class Game:
         self.mcts = MCTS(self, self.game.state)
 
     def run(self):
+        """ Running the simulation G times.
+        """
         for i in range(self.batches):
 
             player = copy.deepcopy(self.initial_player)
@@ -60,9 +68,18 @@ class Game:
         print("Player 2 wins: ", self.winner.count(2))
 
     def get_initial_state(self):
+        """ Gets initial board from game-attribute
+
+        :return: int or list, board
+        """
         return self.game.get_initial_state()
 
     def get_child_action_pair(self, state):
+        """ Finds all children of a state and the action leading to each child.
+
+        :param state: state to find children from
+        :return: list of tuples, (state, action)
+        """
         if self.game.game_over(state):
             return []
         else:
@@ -74,22 +91,39 @@ class Game:
             return states
 
     def get_actions(self, state):
+        """ Produces a list of possible actions from a state
+
+        :param state: state to find actions from
+        :return: list of actions
+        """
         return self.game.child_actions(state)
 
     def get_random_action(self, state):
+        """ Produces a random action of possible actions from a state
+
+        :param state: state to find action from
+        :return: 1 action
+        """
         actions = self.game.child_actions(state)
         return actions[random.randint(0, len(actions)-1)]
 
     def is_win(self, state):
+        """ Checks if a game is finished.
+
+        :param state: last state to check if is final
+        :return:
+        """
         return self.game.game_over(state)
 
     def do_action(self, state, action):
+        """ Perform an action in game
+
+        :param state: state to perform action from
+        :param action: action to perform
+        :return: updated state after action is performed
+        """
         state = self.game.do_move(state, action)
         return state
-
-    # Tenkte det er greit at man bare kan kalle på game-objectet sin state.
-    def get_state(self):
-        return self.game.get_state()
 
 
 g = Game()

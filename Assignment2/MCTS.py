@@ -1,15 +1,23 @@
 import random
-
 import numpy as np
 
 
 class MCTS:
 
     def __init__(self, game, state):
+        """Init MCTS-object
+
+        :param game:
+        :param state:
+        """
         self.game_manager = game
         self.root_node = Node(state, None)
 
     def simulate(self, m):
+        """ Simulation of M different tree-searches to determine a move
+
+        :param m: amount of simulations
+        """
         self.expansion(self.root_node)
         for i in range(m):
             leaf, moves = self.tree_search()
@@ -37,6 +45,10 @@ class MCTS:
                     leaf.is_expanded = True
 
     def tree_search(self):
+        """ Traversing the tree from the root to a leaf node by using the tree policy
+
+        :return: (Node, moves from root to leaf.)
+        """
         leaf = False
         node = self.root_node
         node.visits += 1
@@ -46,13 +58,18 @@ class MCTS:
             node = get_best_child(node, minmax)
             node.visits += 1
             leaf = not node.is_expanded
-            minmax = True if minmax == False else False
+            minmax = True if minmax is False else False
             moves += 1
 
         return node, moves
 
-    # Implementation of an expansion
     def expansion(self, leaf):
+        """ Generating some or all child states of a parent state, and then connecting the tree
+            node housing the parent state (a.k.a. parent node) to the nodes housing the child states (a.k.a. child
+            nodes)
+
+        :param leaf: Node, the node that is to be expanded
+        """
         children = self.game_manager.get_child_action_pair(leaf.state)
         if len(children) != 0:
             leaf.children = [Node(state, action) for state, action in children]
@@ -64,14 +81,16 @@ class MCTS:
         else:
             leaf.is_final_state = True
 
-
-    # Implementation of rollout
-    # As of now, we dont add the random path and therefor will not backpropagate this path (only from the leaf node and up)
     def evaluation(self, leaf, moves):
+        """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
+            the default policy from the leaf node’s state to a final state.
+
+        :param leaf: Node, to be evaluated
+        :param moves: int, number of moves from root to finish node
+        :return: int, reward
+        """
         state = leaf.state
-        number_of_moves = 0
         while not self.game_manager.is_win(state):
-            number_of_moves += 1
             action = self.game_manager.get_random_action(state)
             state = self.game_manager.do_action(state, action)
             moves += 1
@@ -79,6 +98,12 @@ class MCTS:
         return -1 if moves % 2 == 0 else 1
 
     def backpropagation(self, leaf, reward):
+        """ Passing the evaluation of a final state back up the tree, updating relevant data
+            at all nodes and edges on the path from the final state to the tree root.
+
+        :param leaf: Node, leaf node the rollout was from
+        :param reward: int, reward to backpropagate
+        """
         leaf.reward += 1
         node = leaf
         while node.parent:
@@ -87,19 +112,31 @@ class MCTS:
             node = node.parent
 
     def get_action(self):
+        """ Get the next action to be performed based on q_values
+
+        :return: action to be performed
+        """
         max_val = max(self.root_node.q_values.values())
         for action, value in self.root_node.q_values.items():
             if value == max_val:
                 return action
 
     def reset(self, state):
+        """ Reset the root node to a given state
+
+        :param state: state to be "noded"
+        """
         self.root_node = Node(state, None)
 
 
-# Endret til Node for å få bedre oversikt selv og for å slippe State.state.
 class Node:
 
     def __init__(self, state, action):
+        """ Initialize a Node-object
+
+        :param state: The state of the game in the Node
+        :param action: The action that lead to this node
+        """
         self.state = state
         self.children = []
         self.parent = None
@@ -112,6 +149,12 @@ class Node:
 
 
 def get_best_child(node, max=True):
+    """ Finds the next Node to visit in the tree search based on max or min player.
+
+    :param node: Node, current node
+    :param max: Boolean, max or min node
+    :return: Node, the best child
+    """
     best_child = node.children[0]
     best_value = node.q_values[best_child.action] + np.sqrt(np.log(node.visits) / (1 + best_child.visits))
     for child in node.children:
