@@ -156,19 +156,16 @@ def get_best_child(node, max=True):
     :return: Node, the best child
     """
     best_child = node.children[0]
-    best_value = node.q_values[best_child.action] + np.sqrt(np.log(node.visits) / (1 + best_child.visits))
+    visits = np.log(node.visits)
+    best_value = node.q_values[best_child.action] + np.sqrt(visits / (1 + best_child.visits))
     for child in node.children:
         if max:
-            a = np.log(node.visits)
-            b = (1 + child.visits)
-            c = a/b
-
-            value = node.q_values[child.action] + np.sqrt(c)
+            value = node.q_values[child.action] + np.sqrt(visits/(1 + child.visits))
             if value > best_value:
                 best_value = value
                 best_child = child
         elif not max:
-            value = node.q_values[child.action] - np.sqrt(np.log(node.visits) / (1 + child.visits))
+            value = node.q_values[child.action] - np.sqrt(visits / (1 + child.visits))
             if value < best_value:
                 best_value = value
                 best_child = child
