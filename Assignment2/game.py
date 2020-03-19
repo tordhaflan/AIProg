@@ -66,6 +66,11 @@ class Game:
 
         print("Player 1 wins: ", self.winner.count(1))
         print("Player 2 wins: ", self.winner.count(2))
+        percent = self.winner.count(1)/(self.winner.count(1)+self.winner.count(2))*100
+        if self.winner.count(1) >= self.winner.count(2):
+            print("Player 1 wins " + str(int(percent)) + " percent of the games")
+        else:
+            print("Player 2 wins " + str(100 - int(percent)) + " percent of the games")
 
     def get_initial_state(self):
         """ Gets initial board from game-attribute
@@ -88,6 +93,7 @@ class Game:
             for a in actions:
                 new_state = copy.deepcopy(state)
                 states.append((self.game.do_move(new_state, a), a))
+
             return states
 
     def get_actions(self, state):

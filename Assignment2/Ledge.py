@@ -50,6 +50,7 @@ class Ledge:
                 if not state[i] == 0:
                     return False
             return True
+
         return False
 
     def game_over(self, state):
@@ -76,6 +77,7 @@ class Ledge:
                 c = i
             elif c > 0 and state[i] == 0:
                 actions.append((c, i))
+
         return actions
 
     def print(self, state, move):
@@ -116,16 +118,15 @@ def init_board(length, copper):
     :return: list, the board
     """
 
-    board = [0 for i in range(0, length)]
+    board = [0 in range(0, length)]
     gold = random.randint(0, length - 1)
     board[gold] = 2
 
     if (copper >= 0) and (copper < length):
-        coppers = [1 for i in range(0, copper)]
+        coppers = [1 in range(0, copper)]
         while len(coppers) > 0:
             i = random.randint(0, length - 1)
             if board[i] == 0:
                 board[i] = 1
                 coppers.pop()
-
     return board

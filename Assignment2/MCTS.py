@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import copy
 
 
 class MCTS:
@@ -30,7 +31,9 @@ class MCTS:
                 self.expansion(leaf)
                 child = leaf.children[random.randint(0, len(leaf.children)-1)-1]
                 moves += 1
+                child_copy = copy.deepcopy(child.state)
                 reward = self.evaluation(child, moves)
+                child.state = child_copy
                 child.visits += 1
                 self.backpropagation(child, reward)
             else:
