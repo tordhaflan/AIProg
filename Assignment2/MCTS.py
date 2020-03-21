@@ -21,19 +21,17 @@ class MCTS:
         """
         self.expansion(self.root_node)
         for i in range(m):
+
             leaf, moves = self.tree_search()
 
-            if self.game_manager.is_win(leaf.state):
-                leaf.visits += 1
+            if leaf.is_final_state:
                 reward = self.evaluation(leaf, moves)
                 self.backpropagation(leaf, reward)
             elif len(leaf.children) == 0:
                 self.expansion(leaf)
-                child = leaf.children[random.randint(0, len(leaf.children)-1)-1]
+                child = leaf.children[random.randint(0, len(leaf.children)-1)]
                 moves += 1
-                child_copy = copy.deepcopy(child.state)
                 reward = self.evaluation(child, moves)
-                child.state = child_copy
                 child.visits += 1
                 self.backpropagation(child, reward)
             else:
@@ -44,7 +42,7 @@ class MCTS:
                         child.visits += 1
                         self.backpropagation(child, reward)
                         break
-                if leaf.visits == len(leaf.children) + 1:
+                if leaf.visits > len(leaf.children):
                     leaf.is_expanded = True
 
     def tree_search(self):
@@ -52,18 +50,23 @@ class MCTS:
 
         :return: (Node, moves from root to leaf.)
         """
-        leaf = False
         node = self.root_node
         node.visits += 1
         minmax = True
         moves = 0
-        while leaf is not True:
+        is_expanded = node.is_expanded
+
+        if get_best_child(node, True).is_final_state:
+            child = get_best_child(node, True)
+            child.visits += 1
+            return child, 1
+
+        while is_expanded is True:
             node = get_best_child(node, minmax)
             node.visits += 1
-            leaf = not node.is_expanded
+            is_expanded = node.is_expanded
             minmax = True if minmax is False else False
             moves += 1
-
         return node, moves
 
     def expansion(self, leaf):
@@ -74,15 +77,13 @@ class MCTS:
         :param leaf: Node, the node that is to be expanded
         """
         children = self.game_manager.get_child_action_pair(leaf.state)
-        if len(children) != 0:
-            leaf.children = [Node(state, action) for state, action in children]
-            for child in leaf.children:
-                child.parent = leaf
-                leaf.q_values[child.action] = 0
-                if self.game_manager.is_win(child.state):
-                    child.is_final_state = True
-        else:
-            leaf.is_final_state = True
+        leaf.children = [Node(state, action) for state, action in children]
+        for child in leaf.children:
+            child.parent = leaf
+            leaf.q_values[child.action] = 0
+            if self.game_manager.is_win(child.state):
+                child.is_final_state = True
+
 
     def evaluation(self, leaf, moves):
         """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
@@ -92,7 +93,7 @@ class MCTS:
         :param moves: int, number of moves from root to finish node
         :return: int, reward
         """
-        state = leaf.state
+        state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
             action = self.game_manager.get_random_action(state)
             state = self.game_manager.do_action(state, action)
@@ -107,7 +108,7 @@ class MCTS:
         :param leaf: Node, leaf node the rollout was from
         :param reward: int, reward to backpropagate
         """
-        leaf.reward += 1
+        leaf.reward += reward
         node = leaf
         while node.parent:
             node.parent.reward += reward
@@ -149,6 +150,7 @@ class Node:
         self.is_expanded = False
         self.is_final_state = False
         self.q_values = {}
+
 
 
 def get_best_child(node, max=True):

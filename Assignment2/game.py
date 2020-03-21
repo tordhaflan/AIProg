@@ -46,6 +46,7 @@ class Game:
                 print(self.game.print(self.game.state, None))
 
             while not self.game.game_over(self.game.state):
+                self.mcts.reset(copy.deepcopy(self.game.state))
                 self.mcts.simulate(self.episodes)
                 action = self.mcts.get_action()
                 string = self.game.print(self.game.state, action)
@@ -55,10 +56,8 @@ class Game:
 
                 player = (player % 2) + 1
 
-                self.mcts.reset(copy.deepcopy(self.game.state))
-
             if self.verbose:
-                print("Player " + str(player % 2 + 1) + " wins")
+                print("Player " + str(player % 2 + 1) + " wins \n")
 
             self.winner.append(player % 2 + 1)
             self.game.reset_game()
@@ -68,9 +67,9 @@ class Game:
         print("Player 2 wins: ", self.winner.count(2))
         percent = self.winner.count(1)/(self.winner.count(1)+self.winner.count(2))*100
         if self.winner.count(1) >= self.winner.count(2):
-            print("Player 1 wins " + str(int(percent)) + " percent of the games")
+            print("Player 1 wins " + str(int(percent)) + " percent of the games \n")
         else:
-            print("Player 2 wins " + str(100 - int(percent)) + " percent of the games")
+            print("Player 2 wins " + str(100 - int(percent)) + " percent of the games \n")
 
     def get_initial_state(self):
         """ Gets initial board from game-attribute
