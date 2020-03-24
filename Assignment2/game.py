@@ -1,5 +1,6 @@
 import copy
 import random
+from tqdm import tqdm
 
 from Assignment2.Nim import Nim
 from Assignment2.Ledge import Ledge
@@ -37,11 +38,10 @@ class Game:
     def run(self):
         """ Running the simulation G times.
         """
-        for i in range(self.batches):
+        for i in tqdm(range(self.batches)):
 
             player = copy.deepcopy(self.initial_player)
-            if i % 10 == 0:
-                print(i)
+
             if self.verbose:
                 print(self.game.print(self.game.state, None))
 
@@ -52,18 +52,18 @@ class Game:
                 string = self.game.print(self.game.state, action)
                 self.game.state = self.game.do_move(self.game.state, action)
                 if self.verbose:
-                    print("P" + str(player) + string + str(self.game.state))
+                    print("\nP" + str(player) + string + str(self.game.state))
 
                 player = (player % 2) + 1
 
             if self.verbose:
-                print("Player " + str(player % 2 + 1) + " wins \n")
+                print("\nPlayer " + str(player % 2 + 1) + " wins \n")
 
             self.winner.append(player % 2 + 1)
             self.game.reset_game()
             self.mcts.reset(self.game.state)
 
-        print("Player 1 wins: ", self.winner.count(1))
+        print("\nPlayer 1 wins: ", self.winner.count(1))
         print("Player 2 wins: ", self.winner.count(2))
         percent = self.winner.count(1)/(self.winner.count(1)+self.winner.count(2))*100
         if self.winner.count(1) >= self.winner.count(2):
