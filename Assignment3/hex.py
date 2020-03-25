@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
 class Hex:
     def __init__(self, layers=3):
         """ Initialize  Board-object
@@ -11,6 +12,7 @@ class Hex:
         self.layers = layers
         self.board = make_graph(self.layers)
         self.set_neighbours()
+        self.final_path = []
 
     def set_neighbours(self):
         """ Sets the neighbours of a peg
@@ -46,9 +48,43 @@ class Hex:
     #TODO
     # Make this!
     # Add final path attribute (a list) to Hex object
-    def is_win(self):
-        pass
+    # Burde sørge for at vi ikke kaller på denne for ofte.
+    def is_win(self, player):
+        visited = [[False for r in range(self.layers)] for c in range(self.layers)]
+        if player == 2:
+            top = [(0, i) for i in range(self.layers)]
+            bottom = [(self.layers-1, i) for i in range(self.layers)]
+        else:
+            top = [(i, 0) for i in range(self.layers)]
+            bottom = [(i, self.layers - 1) for i in range(self.layers)]
 
+        for r, c in top:
+            for r2, c2 in bottom:
+                if self.board[r][c].filled == player and self.board[r2][c2].filled == player:
+                    queue = []
+                    path = []
+
+                    queue.append((r, c))
+                    path.append((r, c))
+                    visited[r][c] = True
+
+                    while queue:
+                        n = queue.pop(0)
+
+                        if n[0] == r2 and n[1] == c2:
+                            self.final_path = path
+                            print(self.final_path)
+                            return True
+
+                        for i, j in self.board[n[0]][n[1]].neighbours:
+                            if visited[i][j] is False and self.board[i][j].filled == player \
+                                    and self.board[i][j].coordinates not in top:
+                                queue.append((i, j))
+                                path.append((i, j))
+                                visited[i][j] = True
+
+
+        return False
 
 
 class Peg:
@@ -68,6 +104,7 @@ class Peg:
         self.neighbours = []
         self.filled = filled
         self.pegNumber = number
+        self.player = 0
 
     def set_neighbours(self, neighbours):
         """ Appends neighbouring peg to the list of neighbours
@@ -114,6 +151,7 @@ def make_graph(layers):
 
     return graph
 
+
 def find_neighbourhood(row, col, layers):
     """ Finds all the neighbours of a peg that set_neighbours then sets.
 
@@ -138,6 +176,7 @@ def find_neighbourhood(row, col, layers):
 
     return neighbourhood
 
+
 def sort_color(pos, color_map, border_color):
     """ Sorts the graph in the manner that networkx prefers.
 
@@ -154,13 +193,13 @@ def sort_color(pos, color_map, border_color):
 
     return new_map, new_border
 
+
 def check_boundary(row, col, layers):
     """ Checks if a tuple of coordinates is within the boundaries of the board.
 
     :param row: row coordinate
     :param col: col coordinate
     :param layers: size
-    :param diamond: board-shape
     :return: True if the coordinates is within the boundaries of the board
     """
     if row < 0 or col < 0:
@@ -204,12 +243,15 @@ h = Hex(5)
 
 h.do_move(0,0,1)
 h.do_move(0,1,1)
+h.do_move(1,2,1)
 h.do_move(0,2,1)
-h.do_move(0,3,2)
-h.do_move(0,4,2)
+h.do_move(1,0,1)
+h.do_move(0,3,1)
+h.do_move(0,4,1)
+
 
 draw_board(h.board)
-
+print(h.is_win(1))
 h.reset_board()
 
-draw_board(h.board)
+#draw_board(h.board)
