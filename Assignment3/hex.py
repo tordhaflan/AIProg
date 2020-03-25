@@ -34,11 +34,10 @@ class Hex:
 
     def do_move(self, row, col, player):
         self.board[row][col].filled = player
-        return self.get_board(player)
+        return self.get_board()
 
-    def get_board(self, player=1):
+    def get_board(self):
         state = []
-        #state.append(player % 2 + 1)
         for r in range(self.layers):
             for c in range(self.layers):
                 state.append(self.board[r][c].filled)
@@ -207,15 +206,19 @@ def check_boundary(row, col, layers):
         return False
     return True
 
-def draw_board(board):
+
+def draw_board(board, winner=1, final_path=[]):
     """ Just in case we are asked to display a board on the demo.
 
+    :param final_path:
+    :param winner:
     :param board: the Board-object
     :return: Displays a board
     """
     G = nx.Graph()
     color_map = {}
     border_color = {}
+    edge_color = 'b' if winner == 1 else 'r'
     for b in board:
         for i in range(len(b)):
             peg = b[i]
@@ -232,10 +235,16 @@ def draw_board(board):
                     border_color[peg.pegNumber] = 'grey'
 
                 for x, y in peg.neighbours:
-                    G.add_edge(peg.pegNumber, board[x][y].pegNumber)
+                    if peg.coordinates in final_path and (x,y) in final_path:
+                        G.add_edge(peg.pegNumber, board[x][y].pegNumber, color=edge_color, weight=2)
+                    else:
+                        G.add_edge(peg.pegNumber, board[x][y].pegNumber, color ='grey', weight=1)
+    edges = G.edges()
+    colors = [G[u][v]['color'] for u, v in edges]
+    weights = [G[u][v]['weight'] for u, v in edges]
     pos = nx.get_node_attributes(G, 'pos')
     color, border = sort_color(pos, color_map, border_color)
-    nx.draw_networkx(G, pos, node_color=color, edgecolors=border, with_labels=False)
+    nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
     plt.show()
 
 h = Hex(5)
@@ -248,9 +257,10 @@ h.do_move(1,0,2)
 h.do_move(0,3,2)
 h.do_move(0,4,2)
 
+win, player = h.is_win(h.get_board())
 
-draw_board(h.board)
-print(h.is_win(h.get_board()))
+print(win, player)
+draw_board(h.board, player, h.final_path)
+
 h.reset_board()
-
-#draw_board(h.board)
+draw_board(h.board)
