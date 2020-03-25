@@ -1,0 +1,10 @@
+Board size: 4
+
+Number of episodes: 100
+
+Number of simulations: 1000
+
+Player to start (1, 2, or 3, where 3 is random): 1
+
+NN learning rate:
+
