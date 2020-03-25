@@ -84,7 +84,6 @@ class MCTS:
             if self.game_manager.is_win(child.state):
                 child.is_final_state = True
 
-
     def evaluation(self, leaf, moves):
         """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
             the default policy from the leaf node’s state to a final state.
@@ -150,7 +149,6 @@ class Node:
         self.is_expanded = False
         self.is_final_state = False
         self.q_values = {}
-
 
 
 def get_best_child(node, max=True):

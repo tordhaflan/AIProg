@@ -1,16 +1,16 @@
 Type of game (Nim or Ledge): Ledge
 
-Batch size: 20
+Batch size: 10
 
-Number of simulations: 1000
+Number of simulations: 2000
 
 Player to start (1, 2, or 3, where 3 is random): 1
 
-Number of pices: 50
+Number of pices: 20
 
-Max number of pieces: 10
+Max number of pieces: 15
 
-Initial board (empty [] or initial bord): [0,1,0,1,0,2]
+Initial board (empty [] or initial bord): [0,1,0,1,2,0,1]
 
 Verbose (true or false): false
 
