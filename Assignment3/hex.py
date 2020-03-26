@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Hex:
@@ -23,7 +24,14 @@ class Hex:
                     n = find_neighbourhood(i, j, self.layers)
                     self.board[i][j].set_neighbours(n)
 
-    def reset_board(self):
+    def child_actions(self, state):
+        moves = []
+        for i, s in enumerate(state):
+            if s == 0:
+                moves.append(i)
+        return moves
+
+    def reset_game(self):
         """ To initialize the open cells in the board
 
         :param open_cells: list of tuples, coordinates of open cells
@@ -32,19 +40,24 @@ class Hex:
             for c in range(self.layers):
                 self.board[r][c].filled = 0
 
-    def do_move(self, row, col, player):
+    def do_move(self, action, player):
+        row = int(np.floor(action/self.layers))
+        col = action % self.layers
         self.board[row][col].filled = player
         return self.get_board()
+
+    def do_action(self, state, action, player):
+        state[action] = player
+        return state
 
     def get_board(self):
         state = []
         for r in range(self.layers):
             for c in range(self.layers):
                 state.append(self.board[r][c].filled)
-
         return state
 
-    def is_win(self, state):
+    def game_over(self, state):
         top = [(0, i) for i in range(self.layers)]
         bottom = [(self.layers-1, i) for i in range(self.layers)]
         if self.winning(1, top, bottom, state):
@@ -246,21 +259,24 @@ def draw_board(board, winner=1, final_path=[]):
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
     plt.show()
-
-h = Hex(5)
+"""
+h = Hex(4)
 
 h.do_move(0,0,2)
 h.do_move(0,1,2)
 h.do_move(1,2,2)
-h.do_move(0,2,2)
+h.do_move(0,2,1)
 h.do_move(1,0,2)
 h.do_move(0,3,2)
-h.do_move(0,4,2)
+h.do_move(1,1,1)
+h.do_move(2,1,1)
+h.do_move(3,1,1)
 
-win, player = h.is_win(h.get_board())
+print(h.child_actions(h.get_board()))
+
+win, player = h.game_over(h.get_board())
 
 print(win, player)
 draw_board(h.board, player, h.final_path)
+"""
 
-h.reset_board()
-draw_board(h.board)
