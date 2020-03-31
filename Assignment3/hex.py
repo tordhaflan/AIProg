@@ -24,11 +24,11 @@ class Hex:
                     n = find_neighbourhood(i, j, self.layers)
                     self.board[i][j].set_neighbours(n)
 
-    def child_actions(self, state):
+    def child_actions(self, state, player):
         moves = []
         for i, s in enumerate(state):
             if s == 0:
-                moves.append(i)
+                moves.append((i, player))
         return moves
 
     def reset_game(self):
@@ -40,11 +40,12 @@ class Hex:
             for c in range(self.layers):
                 self.board[r][c].filled = 0
 
-    def do_move(self, action, player):
-        row = int(np.floor(action/self.layers))
-        col = action % self.layers
+    def do_move(self, action):
+        a = action[0]
+        player = action[1]
+        row = int(np.floor(a/self.layers))
+        col = a % self.layers
         self.board[row][col].filled = player
-        return self.get_board()
 
     def do_action(self, state, action, player):
         state[action] = player
@@ -61,12 +62,12 @@ class Hex:
         top = [(0, i) for i in range(self.layers)]
         bottom = [(self.layers-1, i) for i in range(self.layers)]
         if self.winning(1, top, bottom, state):
-            return (True, 1)
+            return True
         else:
             top = [(i, 0) for i in range(self.layers)]
             bottom = [(i, self.layers - 1) for i in range(self.layers)]
 
-            return (True, 2) if self.winning(2, top, bottom, state) else (False, 0)
+            return True if self.winning(2, top, bottom, state) else False
 
     def winning(self, player, top, bottom, state):
         visited = [[False for r in range(self.layers)] for c in range(self.layers)]

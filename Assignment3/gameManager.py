@@ -8,10 +8,10 @@ from Assignment3.MCTS import MCTS
 
 
 class Game:
-    #TODO
+    #TODO (state = [player, board], action = [place, player])
     # Må skrive om til at state er på formen [player, board] (altså en n+1 lang liste)
     # Game managaer må håndtere at player er i første del av state
-    # Action må være på formen (peg, player) (eventuelt andre veien, usikker på hva som er best) SJEKK OPP
+    # Action må være på formen (plass, player) (eventuelt andre veien, usikker på hva som er best) SJEKK OPP
 
     def __init__(self, params=read_file()):
         """ Initialize game manager
@@ -27,33 +27,40 @@ class Game:
             self.initial_player = random.randint(1, 2)
         else:
             self.initial_player = params[3]
-        self.mcts = MCTS(self, self.game.get_board())
+        self.player = copy.deepcopy(self.initial_player)
+        self.mcts = MCTS(self, self.state_player())
 
     def run(self):
         """ Running the simulation G times.
         """
         for i in tqdm(range(self.episodes)):
 
-            player = copy.deepcopy(self.initial_player)
+            self.player = copy.deepcopy(self.initial_player)
             while not self.game.game_over(self.game.get_board()):
-                self.mcts.reset(self.game.get_board())
+                self.mcts.reset(self.state_player())
                 self.mcts.simulate(self.simulations)
                 action = self.mcts.get_action()
-                self.game.state = self.game.do_move(action[0], action[1], player)
+                self.game.do_move(action)
 
-                player = (player % 2) + 1
+                self.player = (self.player % 2) + 1
 
             if True:
-                print("\nPlayer " + str(player % 2 + 1) + " wins \n")
-            print(i)
+                print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")
+
             if i != self.episodes - 1:
                 print(i)
                 self.game.reset_game()
-                self.mcts.reset(self.game.get_board())
+                self.mcts.reset(self.state_player())
             else:
-                print(self.game.get_board())
+                print(self.state_player())
         if self.game.game_over(self.game.get_board()):
-            draw_board(self.game.board, (player % 2) + 1, self.game.final_path)
+            draw_board(self.game.board, (self.player % 2) + 1, self.game.final_path)
+
+    def state_player(self):
+        state = self.game.get_board()
+        state.insert(0, self.player)
+        print(state)
+        return state
 
     def get_child_action_pair(self, state):
         """ Finds all children of a state and the action leading to each child.
@@ -61,14 +68,20 @@ class Game:
         :param state: state to find children from
         :return: list of tuples, (state, action)
         """
+        state.reverse()
+        player = state.pop()
+        state.reverse()
+
         if self.game.game_over(state):
             return []
         else:
             states = []
-            actions = self.game.child_actions(state)
+            actions = self.game.child_actions(state, player)
             for a in actions:
                 new_state = copy.deepcopy(state)
-                states.append((self.game.do_move(new_state, a), a))
+                new_state = self.game.do_action(new_state, a[0], a[1])
+                new_state.insert(0, (player % 2) + 1)
+                states.append((new_state, a))
 
             return states
 
@@ -78,7 +91,10 @@ class Game:
         :param state: state to find actions from
         :return: list of actions
         """
-        return self.game.child_actions(state)
+        state.reverse()
+        player = state.pop()
+        state.reverse()
+        return self.game.child_actions(state, player)
 
     def get_random_action(self, state):
         """ Produces a random action of possible actions from a state
@@ -86,7 +102,10 @@ class Game:
         :param state: state to find action from
         :return: 1 action
         """
-        actions = self.game.child_actions(state)
+        state.reverse()
+        player = state.pop()
+        state.reverse()
+        actions = self.game.child_actions(state, player)
         return actions[random.randint(0, len(actions)-1)]
 
     def is_win(self, state):
@@ -95,6 +114,9 @@ class Game:
         :param state: last state to check if is final
         :return:
         """
+        state.reverse()
+        state.pop()
+        state.reverse()
         return self.game.game_over(state)
 
     def do_action(self, state, action):
@@ -104,7 +126,13 @@ class Game:
         :param action: action to perform
         :return: updated state after action is performed
         """
-        state = self.game.do_move(state, action)
+        print(state)
+        state.reverse()
+        player = state.pop()
+        state.reverse()
+        print(state, action, player)
+        state = self.game.do_action(state, action[0], player)
+        state.insert(0, (player % 2) + 1)
         return state
 
 
