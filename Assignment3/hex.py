@@ -14,6 +14,7 @@ class Hex:
         self.board = make_graph(self.layers)
         self.set_neighbours()
         self.final_path = []
+        self.winner = None
 
     def set_neighbours(self):
         """ Sets the neighbours of a peg
@@ -59,6 +60,9 @@ class Hex:
         return state
 
     def game_over(self, state):
+        if (not state.__contains__(0)):
+            return True
+
         top = [(0, i) for i in range(self.layers)]
         bottom = [(self.layers-1, i) for i in range(self.layers)]
         if self.winning(1, top, bottom, state):
@@ -86,7 +90,7 @@ class Hex:
 
                         if n[0] == r2 and n[1] == c2:
                             self.final_path = path
-                            print(self.final_path)
+                            self.winner = player
                             return True
 
                         for i, j in self.board[n[0]][n[1]].neighbours:
@@ -96,6 +100,9 @@ class Hex:
                                 path.append((i, j))
                                 visited[i][j] = True
         return False
+
+    def draw(self, player):
+        draw_board(self.board, player, self.final_path)
 
 
 
@@ -280,4 +287,5 @@ win, player = h.game_over(h.get_board())
 print(win, player)
 draw_board(h.board, player, h.final_path)
 """
+
 
