@@ -104,6 +104,13 @@ class Hex:
     def draw(self, player):
         draw_board(self.board, player, self.final_path)
 
+    def initial_game(self):
+        board = self.get_board()
+        if board.__contains__(1) or board.__contains__(2):
+            return False
+        return True
+
+
 
 
 class Peg:

@@ -4,14 +4,10 @@ from tqdm import tqdm
 
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
-from Assignment3.MCTS import MCTS
+from Assignment3.MCTS_ANET import MCTS_ANET
 
 
 class Game:
-    #TODO (state = [player, board], action = [place, player])
-    # Må skrive om til at state er på formen [player, board] (altså en n+1 lang liste)
-    # Game managaer må håndtere at player er i første del av state
-    # Action må være på formen (plass, player) (eventuelt andre veien, usikker på hva som er best) SJEKK OPP
 
     def __init__(self, params=read_file()):
         """ Initialize game manager
@@ -28,7 +24,7 @@ class Game:
         else:
             self.initial_player = params[3]
         self.player = copy.deepcopy(self.initial_player)
-        self.mcts = MCTS(self, self.state_player())
+        self.mcts = MCTS_ANET(self, self.state_player())
         self.winner = []
 
     def run(self):
@@ -38,7 +34,8 @@ class Game:
 
             self.player = copy.deepcopy(self.initial_player)
             while not self.game.game_over(self.game.get_board()):
-                self.mcts.reset(self.state_player())
+                if not self.game.initial_game():
+                    self.mcts.set_new_root(self.state_player())
                 self.mcts.simulate(self.simulations)
                 action = self.mcts.get_action()
                 self.game.do_move(action)

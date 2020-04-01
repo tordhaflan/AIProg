@@ -3,7 +3,6 @@ import copy
 from Assignment3.MCTS import Node, get_best_child
 
 
-
 class MCTS_ANET:
 
     def __init__(self, game, state):
@@ -124,6 +123,12 @@ class MCTS_ANET:
         for action, value in self.root_node.q_values.items():
             if value == max_val:
                 return action
+
+    def set_new_root(self, state):
+        for child in self.root_node.children:
+            if child.state == state:
+                self.root_node = child
+                break
 
     def reset(self, state):
         """ Reset the root node to a given state
