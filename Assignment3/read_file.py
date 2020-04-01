@@ -25,17 +25,7 @@ def read_file():
                 s = s.strip(")")
                 s = s.split(",")
                 s = [int(x) for x in s]
-            elif s == "triangle":
-                s = False
-            elif s == "diamond":
-                s = True
-            elif s == "table":
-                s = True
-            elif s == "NN":
-                s = False
 
             param.append(s)
     f.close()
     return param
-
-print(read_file())
