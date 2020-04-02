@@ -16,18 +16,24 @@ class ANET:
     def __init__(self, layers, activation, optimizer, size):
         self.size = size
         self.input_dim = ((size ** 2)*2)+2
-        self.name = "" + str(size) + "_board"
+        self.name = str(size) + "_board"
         self.model = Sequential(name=self.name)
 
         # Input layer to the model:
         self.model.add(Dense(layers[0], input_dim=self.input_dim, activation=activation))
 
-        for i in range(1, len(layers)-1):
+        for i in range(1, len(layers)):
             self.model.add(Dense(layers[i], activation=activation))
 
-        self.model.add(Dense(layers[-1]))
+        self.model.add(Dense(size ** 2, activation=activation))
 
         self.model.compile(optimizer=optimizer, loss='mean_squared_error')
+
+        self.model.summary()
+
+    def action(self, x):
+        predictions = self.model.predict(self.process_x(x))
+        return predictions.index(max(predictions))
 
     def train(self, X, Y):
 
@@ -58,7 +64,7 @@ class ANET:
         for i in range(len(Y)):
             if indicies.__contains__(i):
                 x_train.append(self.process_x(X[i]))
-                y_train.append(Y[i])
+                y_train.append(np.asarray(Y[i]))
 
         return x_train, y_train
 
@@ -73,3 +79,4 @@ class ANET:
         self.model = load_model(path)
         self.model.summary()
 
+nn = ANET((5,10,15,10), 'linear', 'sgd', 4)

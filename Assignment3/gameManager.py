@@ -24,7 +24,7 @@ class Game:
         else:
             self.initial_player = params[3]
         self.player = copy.deepcopy(self.initial_player)
-        self.mcts = MCTS_ANET(self, self.state_player())
+        self.mcts = MCTS_ANET(self, self.state_player(), params[5:8], self.game.layers, int(self.episodes/params[8]))
         self.winner = []
 
     def run(self):
@@ -36,11 +36,11 @@ class Game:
             while not self.game.game_over(self.game.get_board()):
                 if not self.game.initial_game():
                     self.mcts.set_new_root(self.state_player())
-                self.mcts.simulate(self.simulations)
-                action = self.mcts.get_action()
+                action = self.mcts.simulate(self.simulations)
                 self.game.do_move(action)
-
                 self.player = (self.player % 2) + 1
+
+            self.mcts.train(i)
 
             self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)

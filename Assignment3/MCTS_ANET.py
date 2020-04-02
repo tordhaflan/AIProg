@@ -1,11 +1,12 @@
 import random
 import copy
+import numpy as np
 from Assignment3.MCTS import Node, get_best_child
-
+from Assignment3.ANET import ANET
 
 class MCTS_ANET:
 
-    def __init__(self, game, state):
+    def __init__(self, game, state, anet_config, size, save_interval):
         """Init MCTS-object
 
         :param game:
@@ -13,6 +14,10 @@ class MCTS_ANET:
         """
         self.game_manager = game
         self.root_node = Node(state, None)
+        self.ANET = ANET(anet_config[0], anet_config[1], anet_config[2], size)
+        self.RBUF = []
+        self.save_interval = save_interval
+
 
     def simulate(self, m):
         """ Simulation of M different tree-searches to determine a move
@@ -44,6 +49,16 @@ class MCTS_ANET:
                         break
                 if leaf.visits > len(leaf.children):
                     leaf.is_expanded = True
+
+        distribution = np.zeros(self.root_node.state)
+        for child in self.root_node.children:
+            distribution[child.action[0]] = child.visits
+        distribution = distribution/self.root_node.visits
+
+        self.RBUF.append((self.root_node.state, distribution))
+
+        return distribution.index(max(distribution))
+
 
     def tree_search(self):
         """ Traversing the tree from the root to a leaf node by using the tree policy
@@ -94,7 +109,7 @@ class MCTS_ANET:
         """
         state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
-            action = self.game_manager.get_random_action(state)
+            action = self.ANET.action(state)
             state = self.game_manager.do_action(state, action)
             moves += 1
 
@@ -136,3 +151,14 @@ class MCTS_ANET:
         :param state: state to be "noded"
         """
         self.root_node = Node(state, None)
+
+    def train(self, g):
+        x_train = []
+        y_train = []
+        for root, dist in self.RBUF:
+            x_train.append(root)
+            y_train.append(dist)
+        self.ANET.train(x_train, y_train)
+
+        if g % self.save_interval == 0:
+            self.ANET.save_model(g)
