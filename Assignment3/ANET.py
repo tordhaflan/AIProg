@@ -1,5 +1,6 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import load_model
 import numpy as np
 import random
 import os
@@ -37,6 +38,7 @@ class ANET:
 
     def process_x(self, X):
         processed_x = np.zeros(self.input_dim)
+
         for i, x in enumerate(X):
             if x == 1:
                 processed_x[i*2] = 1
@@ -60,9 +62,14 @@ class ANET:
 
         return x_train, y_train
 
-    #Not working proparly
     def save_model(self, episode):
-        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size))
-        name = self.name + "_episodes_" + str(episode)
+        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
+        name = self.name + "_" + str(episode) + "_episodes"
+        self.model._name = name
         self.model.save(path)
+
+    def load_model(self, episode):
+        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
+        self.model = load_model(path)
+        self.model.summary()
 

@@ -88,7 +88,6 @@ class Game:
                 new_state = self.game.do_action(new_state, a[0], a[1])
                 new_state.insert(0, (player % 2) + 1)
                 states.append((new_state, a))
-
             return states
 
     def get_actions(self, state):
