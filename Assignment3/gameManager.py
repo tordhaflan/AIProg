@@ -44,7 +44,7 @@ class Game:
 
             self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)
-            if False:
+            if True:
                 print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")
 
             if i != self.episodes - 1:

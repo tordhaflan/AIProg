@@ -29,11 +29,11 @@ class ANET:
 
         self.model.compile(optimizer=optimizer, loss='mean_squared_error')
 
-        self.model.summary()
+        #self.model.summary()
 
-    def action(self, x):
-        predictions = self.model.predict(self.process_x(x))
-        return predictions.index(max(predictions))
+    def distribution(self, x):
+        dist = self.model(self.process_x(x))
+        return dist.numpy()
 
     def train(self, X, Y):
 
@@ -51,7 +51,7 @@ class ANET:
             elif x == 2:
                 processed_x[(i*2)+1] = 1
 
-        return processed_x
+        return processed_x.reshape((1,self.input_dim))
 
     def make_mini_batch(self, X, Y, percentage=0.8):
         indicies = np.arange(0, len(Y)-1)
@@ -78,5 +78,3 @@ class ANET:
         path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
         self.model = load_model(path)
         self.model.summary()
-
-nn = ANET((5,10,15,10), 'linear', 'sgd', 4)

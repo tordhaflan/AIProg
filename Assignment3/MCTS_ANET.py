@@ -26,6 +26,7 @@ class MCTS_ANET:
         """
         self.expansion(self.root_node)
         for i in range(m):
+            print(i)
 
             leaf, moves = self.tree_search()
 
@@ -57,7 +58,7 @@ class MCTS_ANET:
 
         self.RBUF.append((self.root_node.state, distribution))
 
-        return distribution.index(max(distribution))
+        return distribution.argmax()
 
 
     def tree_search(self):
@@ -109,10 +110,12 @@ class MCTS_ANET:
         """
         state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
-            action = self.ANET.action(state)
+            actions = self.game_manager.get_actions(state)
+            print(state, actions)
+            distribution = self.ANET.distribution(state)
+            action = distibution_to_action(distribution, actions)
             state = self.game_manager.do_action(state, action)
             moves += 1
-
         return -1 if moves % 2 == 0 else 1
 
     def backpropagation(self, leaf, reward):
@@ -162,3 +165,11 @@ class MCTS_ANET:
 
         if g % self.save_interval == 0:
             self.ANET.save_model(g)
+
+
+def distibution_to_action(distribution, actions):
+    a = [act[0] for act in actions]
+    for i in range(distribution.size):
+        if not a.__contains__(i):
+            distribution[0][i] = 0
+    return distribution.argmax(), actions[0][1]
