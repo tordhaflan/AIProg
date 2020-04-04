@@ -1,6 +1,7 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers import *
 import numpy as np
 import random
 import os
@@ -13,7 +14,7 @@ class ANET:
 
     #TODO
     # Set right output dim (match prob distribution)
-    def __init__(self, layers, activation, optimizer, size):
+    def __init__(self, lr, layers, activation, optimizer, size):
         self.size = size
         self.input_dim = ((size ** 2)*2)+2
         self.name = str(size) + "_board"
@@ -27,7 +28,7 @@ class ANET:
 
         self.model.add(Dense(self.size ** 2, activation=activation))
 
-        self.model.compile(optimizer=optimizer, loss='mean_squared_error')
+        self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='mean_squared_error')
 
         #self.model.summary()
 
@@ -78,3 +79,14 @@ class ANET:
         path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
         self.model = load_model(path)
         self.model.summary()
+
+
+def make_optimizer(name, lr):
+    if name == 'sgd':
+        return SGD(learning_rate=lr)
+    elif name == 'Adagard':
+        return Adagrad(learning_rate=lr)
+    elif name == 'RMSProp':
+        return RMSprop(learning_rate=lr)
+    elif name == 'Adam':
+        return Adam(learning_rate=lr)

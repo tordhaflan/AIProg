@@ -15,7 +15,7 @@ class MCTS_ANET:
         """
         self.game_manager = game
         self.root_node = Node(state, None)
-        self.ANET = ANET(anet_config[0], anet_config[1], anet_config[2], size)
+        self.ANET = ANET(anet_config[0], anet_config[1], anet_config[2], anet_config[3], size)
         self.RBUF = []
         self.save_interval = save_interval
 
@@ -26,7 +26,6 @@ class MCTS_ANET:
         """
         self.expansion(self.root_node)
         for i in range(m):
-
             leaf, moves = self.tree_search()
 
             if leaf.is_final_state:
@@ -56,6 +55,10 @@ class MCTS_ANET:
         distribution = distribution / self.root_node.visits
 
         self.RBUF.append((self.root_node.state, distribution))
+
+        print(distribution, sum(distribution))
+
+        print(max(distribution))
 
         return distribution.argmax()
 
@@ -143,6 +146,9 @@ class MCTS_ANET:
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
+                self.root_node.parent = None
+                self.root_node.visits = 0
+                self.root_node.reward = 0
                 break
 
     def reset(self, state):
@@ -160,12 +166,16 @@ class MCTS_ANET:
             y_train.append(dist)
         self.ANET.train(x_train, y_train)
 
-        # if g % self.save_interval == 0:
-        #    self.ANET.save_model(g)
+        print((g+1) % self.save_interval)
+
+        if (g+1) % self.save_interval == 0:
+            self.ANET.save_model(g+1)
 
 
 def distibution_to_action(distribution, actions):
     a = [act[0] for act in actions]
+    #TODO
+    # Check this up
     distribution = np.asarray([abs(d) for d in distribution])
     for i in range(distribution.size):
         if not a.__contains__(i):

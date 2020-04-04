@@ -1,19 +1,19 @@
-Board size: 4
+Board size: 3
 
 Number of episodes: 10
 
-Number of simulations: 100
+Number of simulations: 500
 
 Player to start (1, 2, or 3, where 3 is random): 1
 
-ANET learning rate: 0.9
+ANET learning rate: 0.5
 
-ANET Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (10, 20)
+ANET Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (10, 20, 25, 30)
 
-ANET Activation function for hidden nodes (linear, sigmoid, tanh, relu): linear
+ANET Activation function for hidden nodes (linear, sigmoid, tanh, relu): sigmoid
 
-ANET Optimizer (Adagrad, sgd (Stochastic Gradient Descent), RMSProp, and Adam): sgd
+ANET Optimizer (Adagrad, sgd (Stochastic Gradient Descent), RMSProp, and Adam): RMSProp
 
-The number (M) of ANETs to be cached: 5
+The number (M) of ANETs to be cached: 2
 
 Number of games, G, between 2 agents in TOPP: 10

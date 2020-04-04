@@ -4,7 +4,8 @@ from tqdm import tqdm
 
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
-from Assignment3.MCTS_ANET import MCTS_ANET
+from Assignment3.MCTS_ANET import MCTS_ANET, distibution_to_action
+from Assignment3.ANET import ANET
 
 
 class Game:
@@ -24,15 +25,13 @@ class Game:
         else:
             self.initial_player = params[3]
         self.player = copy.deepcopy(self.initial_player)
-        self.mcts = MCTS_ANET(self, self.state_player(), params[5:8], self.game.layers, int(self.episodes/params[8]))
+        self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/params[8]))
         self.winner = []
 
     def run(self):
         """ Running the simulation G times.
         """
         for i in tqdm(range(self.episodes)):
-
-            self.player = copy.deepcopy(self.initial_player)
             while not self.game.game_over(self.game.get_board()):
                 if not self.game.initial_game():
                     self.mcts.set_new_root(self.state_player())
@@ -42,19 +41,21 @@ class Game:
 
             self.mcts.train(i)
 
-            #self.game.draw((self.player % 2) + 1)
+            print("Final path: ", self.game.final_path)
+            print("Final board: ", self.game.get_board())
+
+            self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)
             if True:
                 print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")
 
             if i != self.episodes - 1:
                 self.game.reset_game()
+                self.player = copy.deepcopy(self.initial_player)
                 self.mcts.reset(self.state_player())
-            else:
-                print(self.state_player())
+
         if self.game.game_over(self.game.get_board()):
             self.print_winner_statistics()
-            draw_board(self.game.board, (self.player % 2) + 1, self.game.final_path)
 
     def print_winner_statistics(self):
         print("\nPlayer 1 wins: ", self.winner.count(1))
@@ -137,5 +138,30 @@ def process_state(state):
     return s, player
 
 
+def play(itt):
+    game = Hex(3)
+    player = 1
+    model = ANET(0.9, (10,15,20), 'linear', 'sgd', 3)
+    model.load_model(itt)
+    board = copy.deepcopy(game.get_board())
+    board.insert(0, 1)
+    while not game.game_over(game.get_board()):
+        game.draw(player)
+        print(player)
+        if player == 2:
+            action = int(input("Velg move: "))
+        else:
+            dist = model.distribution(board)
+            actions = game.child_actions(copy.deepcopy(game.get_board()), player)
+            action = distibution_to_action(dist, actions)[0]
+            print(action)
+        game.do_move(action, player)
+        board[action] = player
+        player = (player % 2) + 1
+
+    game.draw(player%2 + 1)
+
+
 g = Game()
 g.run()
+#play(10)
