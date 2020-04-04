@@ -41,11 +41,9 @@ class Hex:
             for c in range(self.layers):
                 self.board[r][c].filled = 0
 
-    def do_move(self, action):
-        a = action[0]
-        player = action[1]
-        row = int(np.floor(a/self.layers))
-        col = a % self.layers
+    def do_move(self, action, player):
+        row = int(np.floor(action/self.layers))
+        col = action % self.layers
         self.board[row][col].filled = player
 
     def do_action(self, state, action, player):
@@ -60,7 +58,7 @@ class Hex:
         return state
 
     def game_over(self, state):
-        if (not state.__contains__(0)):
+        if not state.__contains__(0):
             return True
 
         top = [(0, i) for i in range(self.layers)]

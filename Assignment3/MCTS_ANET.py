@@ -4,6 +4,7 @@ import numpy as np
 from Assignment3.MCTS import Node, get_best_child
 from Assignment3.ANET import ANET
 
+
 class MCTS_ANET:
 
     def __init__(self, game, state, anet_config, size, save_interval):
@@ -18,7 +19,6 @@ class MCTS_ANET:
         self.RBUF = []
         self.save_interval = save_interval
 
-
     def simulate(self, m):
         """ Simulation of M different tree-searches to determine a move
 
@@ -26,7 +26,6 @@ class MCTS_ANET:
         """
         self.expansion(self.root_node)
         for i in range(m):
-            print(i)
 
             leaf, moves = self.tree_search()
 
@@ -51,15 +50,14 @@ class MCTS_ANET:
                 if leaf.visits > len(leaf.children):
                     leaf.is_expanded = True
 
-        distribution = np.zeros(self.root_node.state)
+        distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
-        distribution = distribution/self.root_node.visits
+        distribution = distribution / self.root_node.visits
 
         self.RBUF.append((self.root_node.state, distribution))
 
         return distribution.argmax()
-
 
     def tree_search(self):
         """ Traversing the tree from the root to a leaf node by using the tree policy
@@ -111,7 +109,6 @@ class MCTS_ANET:
         state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
             actions = self.game_manager.get_actions(state)
-            print(state, actions)
             distribution = self.ANET.distribution(state)
             action = distibution_to_action(distribution, actions)
             state = self.game_manager.do_action(state, action)
@@ -163,12 +160,13 @@ class MCTS_ANET:
             y_train.append(dist)
         self.ANET.train(x_train, y_train)
 
-        if g % self.save_interval == 0:
-            self.ANET.save_model(g)
+        # if g % self.save_interval == 0:
+        #    self.ANET.save_model(g)
 
 
 def distibution_to_action(distribution, actions):
     a = [act[0] for act in actions]
+    distribution = np.asarray([abs(d) for d in distribution])
     for i in range(distribution.size):
         if not a.__contains__(i):
             distribution[0][i] = 0

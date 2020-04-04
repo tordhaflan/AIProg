@@ -37,12 +37,12 @@ class Game:
                 if not self.game.initial_game():
                     self.mcts.set_new_root(self.state_player())
                 action = self.mcts.simulate(self.simulations)
-                self.game.do_move(action)
+                self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
 
             self.mcts.train(i)
 
-            self.game.draw((self.player % 2) + 1)
+            #self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)
             if True:
                 print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")

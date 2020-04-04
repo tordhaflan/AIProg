@@ -25,7 +25,7 @@ class ANET:
         for i in range(1, len(layers)):
             self.model.add(Dense(layers[i], activation=activation))
 
-        self.model.add(Dense(size ** 2, activation=activation))
+        self.model.add(Dense(self.size ** 2, activation=activation))
 
         self.model.compile(optimizer=optimizer, loss='mean_squared_error')
 
@@ -37,10 +37,10 @@ class ANET:
 
     def train(self, X, Y):
 
-        for i in range(10):
-            x_train, y_train = self.make_mini_batch(X,Y)
+        #for i in range(10):
+        x_train, y_train = self.make_mini_batch(X,Y)
 
-            self.model.train(x_train, y_train)
+        self.model.fit(x_train, y_train)
 
     def process_x(self, X):
         processed_x = np.zeros(self.input_dim)
@@ -64,9 +64,9 @@ class ANET:
         for i in range(len(Y)):
             if indicies.__contains__(i):
                 x_train.append(self.process_x(X[i]))
-                y_train.append(np.asarray(Y[i]))
+                y_train.append(np.asarray(Y[i]).reshape((1,self.size**2)))
 
-        return x_train, y_train
+        return np.concatenate(x_train), np.concatenate(y_train)
 
     def save_model(self, episode):
         path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
