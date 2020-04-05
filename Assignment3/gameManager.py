@@ -37,14 +37,20 @@ class Game:
                     self.mcts.set_new_root(self.state_player())
                 action = self.mcts.simulate(self.simulations)
                 self.game.do_move(action, self.player)
+                state = self.state_player()
+                dist = self.mcts.ANET.distribution(state)
                 self.player = (self.player % 2) + 1
+
+                print("Dist: ", dist, sum(dist[0]), dist.argmax())
+                print("Board: ", state)
+                print("Processed board: ", self.mcts.ANET.process_x(state))
 
             self.mcts.train(i)
 
             print("Final path: ", self.game.final_path)
             print("Final board: ", self.game.get_board())
 
-            self.game.draw((self.player % 2) + 1)
+            #self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)
             if True:
                 print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")
@@ -164,4 +170,4 @@ def play(itt):
 
 g = Game()
 g.run()
-#play(10)
+#play(100)

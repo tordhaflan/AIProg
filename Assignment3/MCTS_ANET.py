@@ -56,10 +56,6 @@ class MCTS_ANET:
 
         self.RBUF.append((self.root_node.state, distribution))
 
-        print(distribution, sum(distribution))
-
-        print(max(distribution))
-
         return distribution.argmax()
 
     def tree_search(self):
@@ -165,8 +161,6 @@ class MCTS_ANET:
             x_train.append(root)
             y_train.append(dist)
         self.ANET.train(x_train, y_train)
-
-        print((g+1) % self.save_interval)
 
         if (g+1) % self.save_interval == 0:
             self.ANET.save_model(g+1)

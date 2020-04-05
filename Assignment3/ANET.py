@@ -28,7 +28,7 @@ class ANET:
 
         self.model.add(Dense(self.size ** 2, activation=activation))
 
-        self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='mean_squared_error')
+        self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='binary_crossentropy')
 
         #self.model.summary()
 
@@ -37,11 +37,11 @@ class ANET:
         return dist.numpy()
 
     def train(self, X, Y):
-
-        #for i in range(10):
-        x_train, y_train = self.make_mini_batch(X,Y)
-
+        x_train, y_train = self.make_mini_batch(X, Y)
         self.model.fit(x_train, y_train)
+        #for i in range(len(y_train)):
+        #    print("Training data: ", x_train[i], y_train[i])
+        #    self.model.fit(x_train[i], y_train[i])
 
     def process_x(self, X):
         processed_x = np.zeros(self.input_dim)
