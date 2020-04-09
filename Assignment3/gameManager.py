@@ -25,7 +25,7 @@ class Game:
         else:
             self.initial_player = params[3]
         self.player = copy.deepcopy(self.initial_player)
-        self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/params[8]))
+        self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
 
     def run(self):
