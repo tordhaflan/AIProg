@@ -2,7 +2,7 @@ Board size: 3
 
 Number of episodes: 100
 
-Number of simulations: 500
+Number of simulations: 10
 
 Player to start (1, 2, or 3, where 3 is random): 1
 
@@ -14,6 +14,6 @@ ANET Activation function for hidden nodes (linear, sigmoid, tanh, relu): sigmoid
 
 ANET Optimizer (Adagrad, sgd (Stochastic Gradient Descent), RMSProp, and Adam): sgd
 
-The number (M) of ANETs to be cached: 2
+The number (M) of ANETs to be cached: 5
 
 Number of games, G, between 2 agents in TOPP: 10

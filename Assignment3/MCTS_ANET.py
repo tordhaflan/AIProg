@@ -164,6 +164,8 @@ class MCTS_ANET:
 
         if (g+1) % self.save_interval == 0:
             self.ANET.save_model(g+1)
+        elif g == 0:
+            self.ANET.save_model(g)
 
 
 def distibution_to_action(distribution, actions):
