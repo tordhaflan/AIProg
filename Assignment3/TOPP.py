@@ -71,5 +71,5 @@ class TOPP:
             print("The ANET trained for " + str(key) + " episodes won " + str(self.winners[key]) + " games.")
 
 
-t = TOPP(100, 5, 10, 3)
+t = TOPP(100, 5, 10, 4)
 t.run_topp()
