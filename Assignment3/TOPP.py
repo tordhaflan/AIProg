@@ -47,7 +47,7 @@ class TOPP:
         model2.load_model(itt2)
 
         board = copy.deepcopy(game.get_board())
-        board.insert(0, 1)
+        board.insert(0, player)
         while not game.game_over(game.get_board()):
             if player == 1:
                 dist = model1.distribution(board)
@@ -60,6 +60,7 @@ class TOPP:
             game.do_move(action, player)
             board[action] = player
             player = (player % 2) + 1
+            board[0] = player
         game.draw((player % 2) + 1)
         return (player % 2) + 1
 

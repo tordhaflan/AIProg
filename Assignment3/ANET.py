@@ -1,9 +1,7 @@
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import *
 import numpy as np
-import random
 import os
 
 
@@ -16,7 +14,8 @@ class ANET:
     # Set right output dim (match prob distribution)
     def __init__(self, lr, layers, activation, optimizer, size):
         self.size = size
-        self.input_dim = ((size ** 2)*2)+2
+        #self.input_dim = ((size ** 2)*2)+2
+        self.input_dim = (size ** 2)+1
         self.name = str(size) + "_board"
         self.model = Sequential(name=self.name)
 
@@ -26,19 +25,20 @@ class ANET:
         for i in range(1, len(layers)):
             self.model.add(Dense(layers[i], activation=activation))
 
-        self.model.add(Dense(self.size ** 2, activation=activation))
+        self.model.add(Dense(self.size ** 2, activation='softmax')) #adding last layer
 
-        self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='binary_crossentropy')
+        self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='categorical_crossentropy')
 
         #self.model.summary()
 
     def distribution(self, x):
-        dist = self.model(self.process_x(x))
+        #dist = self.model(self.process_x(x))
+        dist = self.model(np.asarray(x).reshape((1,(self.size ** 2)+1)))
         return dist.numpy()
 
     def train(self, X, Y):
         x_train, y_train = self.make_mini_batch(X, Y)
-        self.model.fit(x_train, y_train)
+        self.model.fit(x_train, y_train, epochs=100)
         #for i in range(len(y_train)):
         #    print("Training data: ", x_train[i], y_train[i])
         #    self.model.fit(x_train[i], y_train[i])
@@ -64,7 +64,8 @@ class ANET:
 
         for i in range(len(Y)):
             if indicies.__contains__(i):
-                x_train.append(self.process_x(X[i]))
+                #x_train.append(self.process_x(X[i]))
+                x_train.append(np.asarray(X[i]).reshape((1,(self.size ** 2)+1)))
                 y_train.append(np.asarray(Y[i]).reshape((1,self.size**2)))
 
         return np.concatenate(x_train), np.concatenate(y_train)
@@ -78,13 +79,12 @@ class ANET:
     def load_model(self, episode):
         path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
         self.model = load_model(path)
-        self.model.summary()
 
 
 def make_optimizer(name, lr):
     if name == 'sgd':
         return SGD(learning_rate=lr)
-    elif name == 'Adagard':
+    elif name == 'Adagrad':
         return Adagrad(learning_rate=lr)
     elif name == 'RMSProp':
         return RMSprop(learning_rate=lr)

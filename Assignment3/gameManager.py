@@ -37,13 +37,7 @@ class Game:
                     self.mcts.set_new_root(self.state_player())
                 action = self.mcts.simulate(self.simulations)
                 self.game.do_move(action, self.player)
-                state = self.state_player()
-                dist = self.mcts.ANET.distribution(state)
                 self.player = (self.player % 2) + 1
-
-                print("Dist: ", dist, sum(dist[0]), dist.argmax())
-                print("Board: ", state)
-                print("Processed board: ", self.mcts.ANET.process_x(state))
 
             self.mcts.train(i)
 
@@ -150,24 +144,25 @@ def play(itt):
     model = ANET(0.9, (10,15,20), 'linear', 'sgd', 3)
     model.load_model(itt)
     board = copy.deepcopy(game.get_board())
-    board.insert(0, 1)
+    board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        print(player)
-        if player == 2:
+        if player == 1:
             action = int(input("Velg move: "))
         else:
             dist = model.distribution(board)
+            print(dist, board, len(board))
             actions = game.child_actions(copy.deepcopy(game.get_board()), player)
             action = distibution_to_action(dist, actions)[0]
-            print(action)
         game.do_move(action, player)
         board[action] = player
         player = (player % 2) + 1
+        board[0] = player
 
+        print("Board: ", board, len(board))
     game.draw(player%2 + 1)
 
 
 g = Game()
 g.run()
-#play(100)
+#play(20)

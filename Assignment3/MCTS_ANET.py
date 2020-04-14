@@ -52,8 +52,7 @@ class MCTS_ANET:
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
-        distribution = distribution / self.root_node.visits
-
+        distribution = distribution / sum(distribution)
         self.RBUF.append((self.root_node.state, distribution))
 
         return distribution.argmax()
@@ -97,7 +96,7 @@ class MCTS_ANET:
             if self.game_manager.is_win(child.state):
                 child.is_final_state = True
 
-    def evaluation(self, leaf, moves):
+    def evaluation(self, leaf, moves, epsilon=0.1):
         """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
             the default policy from the leaf node’s state to a final state.
 
@@ -107,9 +106,13 @@ class MCTS_ANET:
         """
         state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
+            rand_int = random.randint(0,9)
             actions = self.game_manager.get_actions(state)
             distribution = self.ANET.distribution(state)
-            action = distibution_to_action(distribution, actions)
+            if rand_int >= epsilon*10:
+                action = distibution_to_action(distribution, actions)
+            else:
+                action = actions[random.randint(0,len(actions)-1)]
             state = self.game_manager.do_action(state, action)
             moves += 1
         return -1 if moves % 2 == 0 else 1
@@ -143,8 +146,6 @@ class MCTS_ANET:
             if child.state == state:
                 self.root_node = child
                 self.root_node.parent = None
-                self.root_node.visits = 0
-                self.root_node.reward = 0
                 break
 
     def reset(self, state):
