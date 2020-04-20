@@ -1,18 +1,18 @@
-Board size: 3
+Board size: 4
 
-Number of episodes: 10
+Number of episodes: 20
 
 Number of simulations: 1000
 
 Player to start (1, 2, or 3, where 3 is random): 1
 
-ANET learning rate: 0.8
+ANET learning rate: 0.001
 
-ANET Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (128, 256, 512, 256, 128)
+ANET Number of layers/number of neuros (e.g (15, 30, 30, 10, 2)): (100,100,100,100,100)
 
 ANET Activation function for hidden nodes (linear, sigmoid, tanh, relu): relu
 
-ANET Optimizer (Adagrad, sgd (Stochastic Gradient Descent), RMSProp, and Adam): Adagrad
+ANET Optimizer (Adagrad, sgd (Stochastic Gradient Descent), RMSProp, and Adam): RMSProp
 
 The number (M) of ANETs to be cached: 5
 

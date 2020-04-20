@@ -96,7 +96,7 @@ class MCTS_ANET:
             if self.game_manager.is_win(child.state):
                 child.is_final_state = True
 
-    def evaluation(self, leaf, moves, epsilon=0.1):
+    def evaluation(self, leaf, moves, epsilon=0.2):
         """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
             the default policy from the leaf node’s state to a final state.
 
@@ -109,6 +109,7 @@ class MCTS_ANET:
             rand_int = random.randint(0,9)
             actions = self.game_manager.get_actions(state)
             distribution = self.ANET.distribution(state)
+            #Choosing a random move or a move from the NN prediction
             if rand_int >= epsilon*10:
                 action = distibution_to_action(distribution, actions)
             else:
@@ -142,6 +143,11 @@ class MCTS_ANET:
                 return action
 
     def set_new_root(self, state):
+        """
+        Function to set the new root and keep the children of the new root
+        """
+        v = [c.visits for c in self.root_node.children]
+        print("Root visits: ", v)
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
@@ -156,11 +162,20 @@ class MCTS_ANET:
         self.root_node = Node(state, None)
 
     def train(self, g):
+        """
+        Method to train the neural net. This implementation only select one instance of a state (to avoid overfitting on rootnode).
+        Implementation can be changed to include all states in RBUF by commenting out the if statement
+
+        Also saving the NN for every g itteration
+        """
         x_train = []
         y_train = []
-        for root, dist in self.RBUF:
-            x_train.append(root)
-            y_train.append(dist)
+        rbuf_copy = copy.deepcopy(self.RBUF)
+        random.shuffle(rbuf_copy)
+        for root, dist in rbuf_copy:
+            if not x_train.__contains__(root):
+                x_train.append(copy.deepcopy(root))
+                y_train.append(copy.deepcopy(dist))
         self.ANET.train(x_train, y_train)
 
         if (g+1) % self.save_interval == 0:
@@ -170,9 +185,10 @@ class MCTS_ANET:
 
 
 def distibution_to_action(distribution, actions):
+    """
+    Method to filter out the moves that isn't possible and returning the move with highest prob
+    """
     a = [act[0] for act in actions]
-    #TODO
-    # Check this up
     distribution = np.asarray([abs(d) for d in distribution])
     for i in range(distribution.size):
         if not a.__contains__(i):

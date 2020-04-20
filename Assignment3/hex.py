@@ -17,7 +17,8 @@ class Hex:
         self.winner = None
 
     def set_neighbours(self):
-        """ Sets the neighbours of a peg
+        """
+        Sets the neighbours of a peg
         """
         for i in range(self.layers):
             for j in range(self.layers):
@@ -26,6 +27,9 @@ class Hex:
                     self.board[i][j].set_neighbours(n)
 
     def child_actions(self, state, player):
+        """
+        Finding the possible action for a state
+        """
         moves = []
         for i, s in enumerate(state):
             if s == 0:
@@ -42,15 +46,24 @@ class Hex:
                 self.board[r][c].filled = 0
 
     def do_move(self, action, player):
+        """
+        Doing a actual move in a played game
+        """
         row = int(np.floor(action/self.layers))
         col = action % self.layers
         self.board[row][col].filled = player
 
     def do_action(self, state, action, player):
+        """
+        Doing a move on a input state (for simulation)
+        """
         state[action] = player
         return state
 
     def get_board(self):
+        """
+        :return current state
+        """
         state = []
         for r in range(self.layers):
             for c in range(self.layers):
@@ -58,6 +71,9 @@ class Hex:
         return state
 
     def game_over(self, state):
+        """
+        Checking if a state is a winning state
+        """
         if not state.__contains__(0):
             return True
 
@@ -72,6 +88,9 @@ class Hex:
             return True if self.winning(2, top, bottom, state) else False
 
     def winning(self, player, top, bottom, state):
+        """
+        Helping method for game_over
+        """
         visited = [[False for r in range(self.layers)] for c in range(self.layers)]
         for r, c in top:
             for r2, c2 in bottom:
@@ -100,6 +119,9 @@ class Hex:
         return False
 
     def draw(self, player):
+        """
+        Displaing a game/state
+        """
         draw_board(self.board, player, self.final_path)
 
     def initial_game(self):

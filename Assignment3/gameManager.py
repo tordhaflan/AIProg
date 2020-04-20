@@ -1,7 +1,6 @@
 import copy
 import random
 from tqdm import tqdm
-
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
 from Assignment3.MCTS_ANET import MCTS_ANET, distibution_to_action
@@ -11,11 +10,8 @@ from Assignment3.ANET import ANET
 class Game:
 
     def __init__(self, params=read_file()):
-        """ Initialize game manager
-
-        :param params: For Nim - [Game name, batch size, number of simulations, player to start, heap size,
-                        max number of pices to remove, verbose]
-                    For Ledge - [Game name, batch size, number of simulations, player to start, initial board, verbose]
+        """
+        Initialize game manager from txt file
         """
         self.game = Hex(params[0])
         self.episodes = params[1]
@@ -29,7 +25,8 @@ class Game:
         self.winner = []
 
     def run(self):
-        """ Running the simulation G times.
+        """
+        Running the simulation G times.
         """
         for i in tqdm(range(self.episodes)):
             while not self.game.game_over(self.game.get_board()):
@@ -44,13 +41,16 @@ class Game:
             print("Final path: ", self.game.final_path)
             print("Final board: ", self.game.get_board())
 
+            #Sett denne opp for å visualisere hvert game
             #self.game.draw((self.player % 2) + 1)
             self.winner.append(self.player % 2 + 1)
+            print(self.winner)
             if True:
-                print("\nPlayer " + str(self.player % 2 + 1) + " wins \n")
+                print("\nPlayer " + str(self.winner[-1]) + " wins \n")
 
             if i != self.episodes - 1:
                 self.game.reset_game()
+                self.initial_player = (self.initial_player % 2) + 1
                 self.player = copy.deepcopy(self.initial_player)
                 self.mcts.reset(self.state_player())
 
@@ -132,22 +132,29 @@ class Game:
         return state
 
 
+
 def process_state(state):
+    """
+    Removes player from the state
+    """
     s = copy.deepcopy(state)
     player = s.pop(0)
     return s, player
 
 
-def play(itt):
-    game = Hex(3)
+def play(itt, board_size):
+    """
+    Method so that one can play agianst a version of the NN
+    """
+    game = Hex(board_size)
     player = 1
-    model = ANET(0.9, (10,15,20), 'linear', 'sgd', 3)
+    model = ANET(0.9, (10,15,20), 'linear', 'sgd', board_size)
     model.load_model(itt)
     board = copy.deepcopy(game.get_board())
     board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        if player == 1:
+        if player == 2:
             action = int(input("Velg move: "))
         else:
             dist = model.distribution(board)
@@ -158,11 +165,13 @@ def play(itt):
         board[action] = player
         player = (player % 2) + 1
         board[0] = player
-
         print("Board: ", board, len(board))
     game.draw(player%2 + 1)
 
-
+# -------- Main --------
+#main for å kjøre spillet/simulering
 g = Game()
 g.run()
-#play(20)
+
+#Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
+#play(200, 5)
