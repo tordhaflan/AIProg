@@ -26,22 +26,21 @@ class ANET:
 
         self.model.compile(optimizer=make_optimizer(optimizer, lr), loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-        self.class_weights = np.zeros(self.size**2)+(1/self.size**2)
-
 
     def distribution(self, x):
         """
         Method to produce a prediction
         """
         dist = self.model(self.process_x(x))
+
         return dist.numpy()
 
     def train(self, X, Y):
         """
         Training method with a minibatch (currently trainig on the whole training set, since it only consist of one instance of every state)
         """
-        x_train, y_train = self.make_mini_batch(X, Y, 1.0)
-        self.model.fit(x_train, y_train, epochs=10)
+        x_train, y_train = self.make_mini_batch(X, Y)
+        self.model.fit(x_train, y_train, epochs=50)
 
     def process_x(self, X):
         """

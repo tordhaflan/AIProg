@@ -28,32 +28,25 @@ class TOPP:
                         if g % 2 == 0:
                             winner = self.play(itt1, itt2)
                             if winner == 1:
+                                print("Itt:", itt1, "won over itt:", itt2, "- Itt", itt1, "started")
                                 self.winners[itt1] += 1
-                            elif winner == 2:
-                                self.winners[itt2] += 1
                             else:
-                                print("Itt: ", itt1, "and itt:", itt2, "drawed. Itt", itt1, "started")
-                                self.draw[itt1] += 1
-                                self.draw[itt2] += 1
+                                print("Itt:", itt2, "won over itt:", itt1, "- Itt", itt1, "started")
+                                self.winners[itt2] += 1
                         else:
                             winner = self.play(itt2, itt1)
                             if winner == 1:
+                                print("Itt:", itt2, "won over itt:", itt1, "- Itt", itt2, "started")
                                 self.winners[itt2] += 1
-                            elif winner == 2:
-                                self.winners[itt1] += 1
                             else:
-                                print("Itt: ", itt1, " and itt: ", itt2, " drawed. Itt", itt2, " started")
-                                self.draw[itt1] += 1
-                                self.draw[itt2] += 1
+                                print("Itt:", itt1, "won over itt:", itt2, "- Itt", itt2, "started")
+                                self.winners[itt1] += 1
 
         self.print_results()
 
     def play(self, itt1, itt2):
         game = Hex(self.layers)
         player = 1
-
-        # TODO
-        # Finne ut hva som skal være input, må vel være samme som de er trent på?
         model1 = ANET(0.9, (10, 15, 20), 'linear', 'sgd', self.layers)
         model1.load_model(itt1)
         model2 = ANET(0.9, (10, 15, 20), 'linear', 'sgd', self.layers)
@@ -71,11 +64,11 @@ class TOPP:
                 actions = game.child_actions(copy.deepcopy(game.get_board()), player)
                 action = distibution_to_action(dist, actions)[0]
             game.do_move(action, player)
-            board[action] = player
+            board[action+1] = player
             player = (player % 2) + 1
             board[0] = player
-        #game.draw((player % 2) + 1)
-        return (player % 2) + 1 if len(game.final_path) != 0 else -1
+        game.draw(game.winner)
+        return game.winner
 
     def print_results(self):
         print("There was played a total of " + str(int((self.saves * (self.saves-1))/2)) + " series of "
@@ -85,5 +78,5 @@ class TOPP:
             print("The ANET trained for " + str(key) + " episodes won " + str(self.winners[key]) + " games.")
 
 
-t = TOPP(20, 5, 10, 5)
+t = TOPP(50, 5, 10, 4)
 t.run_topp()

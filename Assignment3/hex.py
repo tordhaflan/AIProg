@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import copy
 
 
 class Hex:
@@ -74,9 +75,6 @@ class Hex:
         """
         Checking if a state is a winning state
         """
-        if not state.__contains__(0):
-            return True
-
         top = [(0, i) for i in range(self.layers)]
         bottom = [(self.layers-1, i) for i in range(self.layers)]
         if self.winning(1, top, bottom, state):
@@ -122,6 +120,8 @@ class Hex:
         """
         Displaing a game/state
         """
+        if len(self.final_path) != 0:
+            self.clean_final_path()
         draw_board(self.board, player, self.final_path)
 
     def initial_game(self):
@@ -130,7 +130,30 @@ class Hex:
             return False
         return True
 
+    def clean_final_path(self):
+        path = copy.deepcopy(self.final_path)
+        newpath = []
 
+        current = path.pop(0)
+        newpath.append(current)
+        end = path[-1]
+
+        while current != end:
+            neigh = []
+            for n in self.board[current[0]][current[1]].neighbours:
+                if path.__contains__(n):
+                    neigh.append(n)
+            best = 1000
+            best_node = None
+            for n in neigh:
+                dist = abs(n[0]-end[0]) + abs(n[1]-end[1])
+                if dist < best and not newpath.__contains__(n):
+                    best = dist
+                    best_node = n
+            current = best_node
+            newpath.append(current)
+
+        self.final_path = newpath
 
 
 class Peg:
@@ -263,6 +286,7 @@ def draw_board(board, winner=1, final_path=[]):
     :param board: the Board-object
     :return: Displays a board
     """
+    print(final_path)
     G = nx.Graph()
     color_map = {}
     border_color = {}
@@ -294,25 +318,23 @@ def draw_board(board, winner=1, final_path=[]):
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
     plt.show()
+    plt.show()
+
 """
 h = Hex(4)
 
-h.do_move(0,0,2)
-h.do_move(0,1,2)
-h.do_move(1,2,2)
-h.do_move(0,2,1)
-h.do_move(1,0,2)
-h.do_move(0,3,2)
-h.do_move(1,1,1)
-h.do_move(2,1,1)
-h.do_move(3,1,1)
+h.do_move(1,1)
+h.do_move(2,1)
+h.do_move(5,1)
+h.do_move(9,1)
+h.do_move(13,1)
+h.do_move(8,2)
 
-print(h.child_actions(h.get_board()))
+h.game_over(h.get_board())
 
-win, player = h.game_over(h.get_board())
+h.draw(1)
 
-print(win, player)
-draw_board(h.board, player, h.final_path)
 """
+
 
 

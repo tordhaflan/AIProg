@@ -1,7 +1,8 @@
 import random
 import copy
 import numpy as np
-from Assignment3.MCTS import Node, get_best_child
+import time
+from Assignment3.MCTS_A2 import Node, get_best_child
 from Assignment3.ANET import ANET
 
 
@@ -18,16 +19,18 @@ class MCTS_ANET:
         self.ANET = ANET(anet_config[0], anet_config[1], anet_config[2], anet_config[3], size)
         self.RBUF = []
         self.save_interval = save_interval
+        self.time = np.zeros(5)
 
-    def simulate(self, m):
+    def simulate(self, t):
         """ Simulation of M different tree-searches to determine a move
 
         :param m: amount of simulations
         """
+        #self.time = np.zeros(5)
+        start = time.time()
         self.expansion(self.root_node)
-        for i in range(m):
+        while time.time() - start < t:
             leaf, moves = self.tree_search()
-
             if leaf.is_final_state:
                 reward = self.evaluation(leaf, moves)
                 self.backpropagation(leaf, reward)
@@ -48,12 +51,15 @@ class MCTS_ANET:
                         break
                 if leaf.visits > len(leaf.children):
                     leaf.is_expanded = True
-
+        print(time.time()-start)
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
         distribution = distribution / sum(distribution)
+        print("Dist: ", distribution)
         self.RBUF.append((self.root_node.state, distribution))
+
+        #print("Tree search: {:.2}s. \nExpansion: {:.2}s. \nEvaluation: {:2f}s. \nBackpropagation {:.2}s. \nTraining {:.2}s ".format(*self.time))
 
         return distribution.argmax()
 
@@ -62,6 +68,7 @@ class MCTS_ANET:
 
         :return: (Node, moves from root to leaf.)
         """
+        start = time.time()
         node = self.root_node
         node.visits += 1
         minmax = True
@@ -79,6 +86,7 @@ class MCTS_ANET:
             is_expanded = node.is_expanded
             minmax = True if minmax is False else False
             moves += 1
+        self.time[0] += time.time()-start
         return node, moves
 
     def expansion(self, leaf):
@@ -88,6 +96,7 @@ class MCTS_ANET:
 
         :param leaf: Node, the node that is to be expanded
         """
+        start = time.time()
         children = self.game_manager.get_child_action_pair(leaf.state)
         leaf.children = [Node(state, action) for state, action in children]
         for child in leaf.children:
@@ -95,6 +104,7 @@ class MCTS_ANET:
             leaf.q_values[child.action] = 0
             if self.game_manager.is_win(child.state):
                 child.is_final_state = True
+        self.time[1] += time.time() - start
 
     def evaluation(self, leaf, moves, epsilon=0.2):
         """ Estimating the value of a leaf node in the tree by doing a rollout simulation using
@@ -104,8 +114,11 @@ class MCTS_ANET:
         :param moves: int, number of moves from root to finish node
         :return: int, reward
         """
+        s = time.time()
+        t = np.zeros(5)
         state = copy.deepcopy(leaf.state)
         while not self.game_manager.is_win(state):
+            start = time.time()
             rand_int = random.randint(0,9)
             actions = self.game_manager.get_actions(state)
             distribution = self.ANET.distribution(state)
@@ -116,6 +129,7 @@ class MCTS_ANET:
                 action = actions[random.randint(0,len(actions)-1)]
             state = self.game_manager.do_action(state, action)
             moves += 1
+        self.time[2] += time.time() - s
         return -1 if moves % 2 == 0 else 1
 
     def backpropagation(self, leaf, reward):
@@ -125,12 +139,14 @@ class MCTS_ANET:
         :param leaf: Node, leaf node the rollout was from
         :param reward: int, reward to backpropagate
         """
+        start = time.time()
         leaf.reward += reward
         node = leaf
         while node.parent:
             node.parent.reward += reward
             node.parent.q_values[node.action] = node.reward / node.visits
             node = node.parent
+        self.time[3] += time.time() - start
 
     def get_action(self):
         """ Get the next action to be performed based on q_values
@@ -168,21 +184,22 @@ class MCTS_ANET:
 
         Also saving the NN for every g itteration
         """
+        start = time.time()
         x_train = []
         y_train = []
         rbuf_copy = copy.deepcopy(self.RBUF)
         random.shuffle(rbuf_copy)
         for root, dist in rbuf_copy:
-            if not x_train.__contains__(root):
-                x_train.append(copy.deepcopy(root))
-                y_train.append(copy.deepcopy(dist))
+            #if not x_train.__contains__(root):
+            x_train.append(copy.deepcopy(root))
+            y_train.append(copy.deepcopy(dist))
         self.ANET.train(x_train, y_train)
 
         if (g+1) % self.save_interval == 0:
             self.ANET.save_model(g+1)
         elif g == 0:
             self.ANET.save_model(g)
-
+        self.time[4] += time.time() - start
 
 def distibution_to_action(distribution, actions):
     """

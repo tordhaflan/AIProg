@@ -132,7 +132,6 @@ class Game:
         return state
 
 
-
 def process_state(state):
     """
     Removes player from the state
@@ -154,15 +153,16 @@ def play(itt, board_size):
     board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        if player == 2:
+        if player == 1:
             action = int(input("Velg move: "))
         else:
             dist = model.distribution(board)
             print(dist, board, len(board))
+            print(dist.argmax())
             actions = game.child_actions(copy.deepcopy(game.get_board()), player)
             action = distibution_to_action(dist, actions)[0]
         game.do_move(action, player)
-        board[action] = player
+        board[action+1] = player
         player = (player % 2) + 1
         board[0] = player
         print("Board: ", board, len(board))
@@ -170,8 +170,8 @@ def play(itt, board_size):
 
 # -------- Main --------
 #main for å kjøre spillet/simulering
-g = Game()
-g.run()
+#g = Game()
+#g.run()
 
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
-#play(200, 5)
+play(100, 3)
