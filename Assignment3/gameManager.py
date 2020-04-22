@@ -153,12 +153,11 @@ def play(itt, board_size):
     board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        if player == 1:
+        if player == 2:
             action = int(input("Velg move: "))
         else:
             dist = model.distribution(board)
-            print(dist, board, len(board))
-            print(dist.argmax())
+            print("Diste: ", dist)
             actions = game.child_actions(copy.deepcopy(game.get_board()), player)
             action = distibution_to_action(dist, actions)[0]
         game.do_move(action, player)

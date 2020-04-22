@@ -75,6 +75,7 @@ class Hex:
         """
         Checking if a state is a winning state
         """
+
         top = [(0, i) for i in range(self.layers)]
         bottom = [(self.layers-1, i) for i in range(self.layers)]
         if self.winning(1, top, bottom, state):
@@ -104,6 +105,7 @@ class Hex:
                         n = queue.pop(0)
 
                         if n[0] == r2 and n[1] == c2:
+                            path.append(n)
                             self.final_path = path
                             self.winner = player
                             return True
@@ -112,8 +114,8 @@ class Hex:
                             if visited[i][j] is False and state[i*self.layers+j] == player \
                                     and self.board[i][j].coordinates not in top:
                                 queue.append((i, j))
-                                path.append((i, j))
                                 visited[i][j] = True
+                        path.append(n)
         return False
 
     def draw(self, player):
@@ -133,11 +135,9 @@ class Hex:
     def clean_final_path(self):
         path = copy.deepcopy(self.final_path)
         newpath = []
-
         current = path.pop(0)
         newpath.append(current)
         end = path[-1]
-
         while current != end:
             neigh = []
             for n in self.board[current[0]][current[1]].neighbours:
@@ -286,7 +286,6 @@ def draw_board(board, winner=1, final_path=[]):
     :param board: the Board-object
     :return: Displays a board
     """
-    print(final_path)
     G = nx.Graph()
     color_map = {}
     border_color = {}
@@ -317,24 +316,29 @@ def draw_board(board, winner=1, final_path=[]):
     pos = nx.get_node_attributes(G, 'pos')
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
-    plt.show()
+    print("Print")
     plt.show()
 
 """
 h = Hex(4)
-
-h.do_move(1,1)
-h.do_move(2,1)
-h.do_move(5,1)
+h.do_move(3,1)
+h.do_move(7,1)
 h.do_move(9,1)
-h.do_move(13,1)
-h.do_move(8,2)
+h.do_move(10,1)
+h.do_move(11,1)
+h.do_move(14,1)
+
 
 h.game_over(h.get_board())
 
 h.draw(1)
-
 """
+
+
+
+
+
+
 
 
 

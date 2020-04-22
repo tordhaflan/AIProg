@@ -4,6 +4,7 @@ Assignment1/RL/__pycache__/
 Assignment1/SimWorld/__pycache__/
 Assignment2/__pycache__/
 *.py[cod]
+Assignment3/Models/
 
 # C extensions
 *.so
