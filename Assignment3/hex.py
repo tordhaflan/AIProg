@@ -90,9 +90,10 @@ class Hex:
         """
         Helping method for game_over
         """
-        visited = [[False for r in range(self.layers)] for c in range(self.layers)]
+
         for r, c in top:
             for r2, c2 in bottom:
+                visited = [[False for r in range(self.layers)] for c in range(self.layers)]
                 if state[r*self.layers+c] == player and state[r2*self.layers+c2] == player:
                     queue = []
                     path = []
@@ -100,10 +101,8 @@ class Hex:
                     queue.append((r, c))
                     path.append((r, c))
                     visited[r][c] = True
-
                     while queue:
                         n = queue.pop(0)
-
                         if n[0] == r2 and n[1] == c2:
                             path.append(n)
                             self.final_path = path
@@ -134,6 +133,7 @@ class Hex:
 
     def clean_final_path(self):
         path = copy.deepcopy(self.final_path)
+        dead_end = []
         newpath = []
         current = path.pop(0)
         newpath.append(current)
@@ -147,10 +147,16 @@ class Hex:
             best_node = None
             for n in neigh:
                 dist = abs(n[0]-end[0]) + abs(n[1]-end[1])
-                if dist < best and not newpath.__contains__(n):
+                if dist < best and not newpath.__contains__(n) and not dead_end.__contains__(n):
                     best = dist
                     best_node = n
-            current = best_node
+            if best_node is None:
+                dead_end.append(current)
+                newpath.pop(-1)
+                current = newpath[-1]
+            else:
+                current = best_node
+
             newpath.append(current)
 
         self.final_path = newpath
@@ -316,7 +322,6 @@ def draw_board(board, winner=1, final_path=[]):
     pos = nx.get_node_attributes(G, 'pos')
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
-    print("Print")
     plt.show()
 
 """

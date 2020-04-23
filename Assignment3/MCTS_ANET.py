@@ -4,6 +4,7 @@ import numpy as np
 import time
 from Assignment3.MCTS_A2 import Node, get_best_child
 from Assignment3.ANET import ANET
+from Assignment3.hex import Hex
 
 
 class MCTS_ANET:
@@ -51,14 +52,13 @@ class MCTS_ANET:
                         break
                 if leaf.visits > len(leaf.children):
                     leaf.is_expanded = True
-        print(time.time()-start)
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
         distribution = distribution / sum(distribution)
-        print("Dist: ", distribution)
+        #print("Dist: ", distribution)
         self.RBUF.append((self.root_node.state, distribution))
-
+        print(time.time() - start)
         #print("Tree search: {:.2}s. \nExpansion: {:.2}s. \nEvaluation: {:2f}s. \nBackpropagation {:.2}s. \nTraining {:.2}s ".format(*self.time))
 
         return distribution.argmax()
@@ -163,7 +163,7 @@ class MCTS_ANET:
         Function to set the new root and keep the children of the new root
         """
         v = [c.visits for c in self.root_node.children]
-        print("Root visits: ", v)
+        #print("Root visits: ", v)
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
@@ -190,7 +190,6 @@ class MCTS_ANET:
         rbuf_copy = copy.deepcopy(self.RBUF)
         random.shuffle(rbuf_copy)
         for root, dist in rbuf_copy:
-            #if not x_train.__contains__(root):
             x_train.append(copy.deepcopy(root))
             y_train.append(copy.deepcopy(dist))
         self.ANET.train(x_train, y_train)

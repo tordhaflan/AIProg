@@ -1,5 +1,7 @@
 import copy
 import random
+import os
+import csv
 from tqdm import tqdm
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
@@ -29,12 +31,15 @@ class Game:
         Running the simulation G times.
         """
         for i in tqdm(range(self.episodes)):
+            time_sim = copy.deepcopy(self.simulations)
             while not self.game.game_over(self.game.get_board()):
                 if not self.game.initial_game():
                     self.mcts.set_new_root(self.state_player())
-                action = self.mcts.simulate(self.simulations)
+                action = self.mcts.simulate(time_sim)
                 self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
+                time_sim -= 0.01
+
 
             self.mcts.train(i)
 
@@ -167,10 +172,43 @@ def play(itt, board_size):
         print("Board: ", board, len(board))
     game.draw(player%2 + 1)
 
+
+def save_RBUF(RBUF, size):
+    path = os.path.abspath('../Assignment3/RBUF/RBUF_' + str(size) + ".csv")
+    file_obj = open(path, 'a', newline='')
+
+    writer = csv.writer(file_obj, quoting=csv.QUOTE_ALL)
+
+    for state, dist in RBUF:
+        writer.writerow(state)
+        writer.writerow(dist)
+    file_obj.close()
+
+
+def load_RBUF(size):
+    path = os.path.abspath('../Assignment3/RBUF/RBUF_' + str(size) + ".csv")
+    RBUF = []
+    with open(path, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        rows = []
+        for row in reader:
+            rows.append(row)
+
+    for i in range(0,len(rows), 2):
+        state = [int(s) for s in rows[i]]
+        dist = [float(d) for d in rows[i+1]]
+        RBUF.append((state, dist))
+
+    return RBUF
 # -------- Main --------
 #main for å kjøre spillet/simulering
-#g = Game()
-#g.run()
+g = Game()
+g.run()
+RBUF = g.mcts.RBUF
+
+save_RBUF(RBUF, g.game.layers)
+
 
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
-play(100, 3)
+#play(200, 5)
+
