@@ -5,6 +5,7 @@ Assignment1/SimWorld/__pycache__/
 Assignment2/__pycache__/
 *.py[cod]
 Assignment3/Models/
+Assignment3/RBUF/
 
 # C extensions
 *.so

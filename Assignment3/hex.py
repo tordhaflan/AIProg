@@ -52,7 +52,8 @@ class Hex:
         """
         row = int(np.floor(action/self.layers))
         col = action % self.layers
-        self.board[row][col].filled = player
+        if self.board[row][col].filled == 0:
+            self.board[row][col].filled = player
 
     def do_action(self, state, action, player):
         """
@@ -117,13 +118,13 @@ class Hex:
                         path.append(n)
         return False
 
-    def draw(self, player):
+    def draw(self, player, itt1=None, itt2=None):
         """
         Displaing a game/state
         """
         if len(self.final_path) != 0:
             self.clean_final_path()
-        draw_board(self.board, player, self.final_path)
+        draw_board(self.board, player, self.final_path, itt1, itt2)
 
     def initial_game(self):
         board = self.get_board()
@@ -284,7 +285,7 @@ def check_boundary(row, col, layers):
     return True
 
 
-def draw_board(board, winner=1, final_path=[]):
+def draw_board(board, winner=1, final_path=[], itt1 = None, itt2 = None):
     """ Just in case we are asked to display a board on the demo.
 
     :param final_path:
@@ -322,6 +323,25 @@ def draw_board(board, winner=1, final_path=[]):
     pos = nx.get_node_attributes(G, 'pos')
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
+
+    #Printing of itteration labels
+    if itt1 is not None and itt2 is not None:
+        if itt1 == 1 and itt2 == 2:
+            s1 = "Player " + str(itt2)
+            s2 = "Player " + str(itt1)
+        else:
+            s1 = "Itteration " + str(itt2)
+            s2 = "Itteration " + str(itt1)
+        h = max(max(list(pos.values())))
+        if h == 4:
+            v = h - 0.15
+        else:
+            v = h - 1
+        plt.text(0, v, s=s1, fontsize=16, color='black',  horizontalalignment='left', bbox=dict(facecolor='white', edgecolor='red', pad=5.0))
+        plt.text(h, v, s=s2, fontsize=16, color='black', horizontalalignment='right', bbox=dict(facecolor='white', edgecolor='blue', pad=5.0))
+    #Background on board
+    plt.gca().set_facecolor('ghostwhite')
+
     plt.show()
 
 """
@@ -331,19 +351,13 @@ h.do_move(7,1)
 h.do_move(9,1)
 h.do_move(10,1)
 h.do_move(11,1)
-h.do_move(14,1)
-
+h.do_move(12,2)
+h.do_move(13,2)
+h.do_move(14,2)
+h.do_move(15,2)
 
 h.game_over(h.get_board())
 
-h.draw(1)
+h.draw(h.winner, 10, 20)
+
 """
-
-
-
-
-
-
-
-
-

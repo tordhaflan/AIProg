@@ -58,7 +58,7 @@ class MCTS_ANET:
         distribution = distribution / sum(distribution)
         #print("Dist: ", distribution)
         self.RBUF.append((self.root_node.state, distribution))
-        print(time.time() - start)
+        #print(time.time() - start)
         #print("Tree search: {:.2}s. \nExpansion: {:.2}s. \nEvaluation: {:2f}s. \nBackpropagation {:.2}s. \nTraining {:.2}s ".format(*self.time))
 
         return distribution.argmax()
@@ -121,9 +121,8 @@ class MCTS_ANET:
             start = time.time()
             rand_int = random.randint(0,9)
             actions = self.game_manager.get_actions(state)
-            distribution = self.ANET.distribution(state)
-            #Choosing a random move or a move from the NN prediction
             if rand_int >= epsilon*10:
+                distribution = self.ANET.distribution(state)
                 action = distibution_to_action(distribution, actions)
             else:
                 action = actions[random.randint(0,len(actions)-1)]

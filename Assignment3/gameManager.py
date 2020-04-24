@@ -2,6 +2,7 @@ import copy
 import random
 import os
 import csv
+import numpy as np
 from tqdm import tqdm
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
@@ -25,6 +26,7 @@ class Game:
         self.player = copy.deepcopy(self.initial_player)
         self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
+        self.delta = 2
 
     def run(self):
         """
@@ -38,7 +40,7 @@ class Game:
                 action = self.mcts.simulate(time_sim)
                 self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
-                time_sim -= 0.01
+                time_sim -= self.delta
 
 
             self.mcts.train(i)
@@ -58,6 +60,10 @@ class Game:
                 self.initial_player = (self.initial_player % 2) + 1
                 self.player = copy.deepcopy(self.initial_player)
                 self.mcts.reset(self.state_player())
+
+            if i > self.episodes/2:
+                self.simulations = 2
+                self.delta = 0.01
 
         if self.game.game_over(self.game.get_board()):
             self.print_winner_statistics()
@@ -159,16 +165,21 @@ def play(itt, board_size):
     while not game.game_over(game.get_board()):
         game.draw(player)
         if player == 2:
-            action = int(input("Velg move: "))
+            inn = ""
+            while not inn.isdigit():
+                inn = input("Velg move: ")
+            action = int(inn)
         else:
             dist = model.distribution(board)
-            print("Diste: ", dist)
+            with np.printoptions(precision=3, suppress=True):
+                print("Dist: ", dist, dist.argmax())
             actions = game.child_actions(copy.deepcopy(game.get_board()), player)
             action = distibution_to_action(dist, actions)[0]
         game.do_move(action, player)
-        board[action+1] = player
-        player = (player % 2) + 1
-        board[0] = player
+        if board[action+1] == 0:
+            board[action+1] = player
+            player = (player % 2) + 1
+            board[0] = player
         print("Board: ", board, len(board))
     game.draw(player%2 + 1)
 
@@ -210,5 +221,5 @@ save_RBUF(RBUF, g.game.layers)
 
 
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
-#play(200, 5)
+#play(48, 4)
 
