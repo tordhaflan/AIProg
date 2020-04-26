@@ -1,8 +1,8 @@
-Board size: 4
+Board size: 6
 
-Number of episodes: 100
+Number of episodes: 200
 
-Time of simulation (in seconds): 30
+Time of simulation (in seconds): 10
 
 Player to start (1, 2, or 3, where 3 is random): 1
 

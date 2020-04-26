@@ -92,5 +92,5 @@ class TOPP:
 
 
 
-t = TOPP(100, 5, 10, 4)
+t = TOPP(200, 5, 10, 4)
 t.run_topp(False)

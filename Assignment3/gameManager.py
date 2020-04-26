@@ -26,7 +26,7 @@ class Game:
         self.player = copy.deepcopy(self.initial_player)
         self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
-        self.delta = 2
+        self.delta = 0.01
 
     def run(self):
         """
@@ -62,8 +62,8 @@ class Game:
                 self.mcts.reset(self.state_player())
 
             if i > self.episodes/2:
-                self.simulations = 2
-                self.delta = 0.01
+                self.simulations = 60
+                self.delta = 3
 
         if self.game.game_over(self.game.get_board()):
             self.print_winner_statistics()
@@ -164,7 +164,7 @@ def play(itt, board_size):
     board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        if player == 2:
+        if player == 1:
             inn = ""
             while not inn.isdigit():
                 inn = input("Velg move: ")
@@ -221,5 +221,5 @@ save_RBUF(RBUF, g.game.layers)
 
 
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
-#play(48, 4)
+#play(200, 5)
 

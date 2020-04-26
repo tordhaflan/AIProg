@@ -1,10 +1,17 @@
 import math
+import numpy as np
+
 from Assignment3.BasicClientActorAbs import BasicClientActorAbs
+from Assignment3.ANET import ANET
+from Assignment3.hex import Hex
+from Assignment3.MCTS_ANET import distibution_to_action
+
 
 class BasicClientActor(BasicClientActorAbs):
 
     def __init__(self, IP_address=None, verbose=True):
         self.series_id = -1
+        self.size = 0
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
     def handle_get_action(self, state):
@@ -19,8 +26,9 @@ class BasicClientActor(BasicClientActorAbs):
         """
 
         # This is an example player who picks random moves. REMOVE THIS WHEN YOU ADD YOUR OWN CODE !!
-        next_move = tuple(self.pick_random_free_cell(
-            state, size=int(math.sqrt(len(state)-1))))
+
+        # next_move = tuple(self.pick_random_free_cell(
+        #   state, size=int(math.sqrt(len(state)-1))))
         #############################
         #
         #
@@ -28,6 +36,23 @@ class BasicClientActor(BasicClientActorAbs):
         #
         # next_move = ???
         ##############################
+
+        # Endre hvilket lagret ANET som skal spille her:
+        iteration = 200
+
+        model = ANET(0.9, (10,15,20), 'linear', 'sgd', self.size)
+        model.load_model(iteration)
+        board = state
+        player = self.series_id
+        game = Hex(self.size)
+        distribution = model.distribution(board)
+        actions = game.child_actions(board, player)
+        action = distibution_to_action(distribution, actions)[0]
+        row = int(np.floor(action/self.size))
+        col = action % self.size
+
+        next_move = (row, col)
+
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
@@ -42,13 +67,9 @@ class BasicClientActor(BasicClientActorAbs):
 
         """
         self.series_id = series_id
-        #############################
-        #
-        #
-        # YOUR CODE (if you have anything else) HERE
-        #
-        #
-        ##############################
+        self.size = game_params[0]
+        print("Size of the board:", self.size)
+
 
     def handle_game_start(self, start_player):
         """
