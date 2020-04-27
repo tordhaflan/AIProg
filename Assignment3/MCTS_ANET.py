@@ -56,6 +56,7 @@ class MCTS_ANET:
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
+        print("Dist:", distribution)
         distribution = distribution / sum(distribution)
         self.RBUF.append((self.root_node.state, distribution))
         if len(self.RBUF) > 2000:
@@ -135,7 +136,7 @@ class MCTS_ANET:
             state = self.game_manager.do_action(state, action)
             moves += 1
         self.time[2] += time.time() - s
-        return -1 if moves % 2 == 0 else 1
+        return -1 if moves % 2 == 0 else 1/moves
 
     def backpropagation(self, leaf, reward):
         """ Passing the evaluation of a final state back up the tree, updating relevant data
@@ -168,7 +169,7 @@ class MCTS_ANET:
         Function to set the new root and keep the children of the new root
         """
         v = [c.visits for c in self.root_node.children]
-        print("Root visits: ", v)
+        #print("Root visits: ", v)
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
