@@ -12,6 +12,9 @@ class BasicClientActor(BasicClientActorAbs):
     def __init__(self, IP_address=None, verbose=True):
         self.series_id = -1
         self.size = 0
+        self.game = None
+        self.model = None
+
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
     def handle_get_action(self, state):
@@ -38,16 +41,18 @@ class BasicClientActor(BasicClientActorAbs):
         ##############################
 
         # Endre hvilket lagret ANET som skal spille her:
-        iteration = 200
+        state = list(state)
+        board = self.game.get_board()
+        for i in range(1, len(state)+1):
+            if state[i] != board[i-1]:
+                self.game.do_move(i-1, (self.series_id % 2) + 1)
 
-        model = ANET(0.9, (10,15,20), 'linear', 'sgd', self.size)
-        model.load_model(iteration)
-        board = state
-        player = self.series_id
-        game = Hex(self.size)
-        distribution = model.distribution(board)
-        actions = game.child_actions(board, player)
+        distribution = self.model.distribution(state)
+        actions = self.game.child_actions(state, self.series_id)
         action = distibution_to_action(distribution, actions)[0]
+
+        self.game.do_move(action, self.series_id)
+
         row = int(np.floor(action/self.size))
         col = action % self.size
 
@@ -69,6 +74,13 @@ class BasicClientActor(BasicClientActorAbs):
         self.series_id = series_id
         self.size = game_params[0]
         print("Size of the board:", self.size)
+
+        iteration = 400
+
+        self.game = Hex(self.size)
+        self.model = ANET(0.0009, (1024, 1024, 1024), 'Relu', 'Adam', self.size)
+        self.model.model = self.model.load_model(iteration)
+
 
 
     def handle_game_start(self, start_player):
@@ -93,13 +105,9 @@ class BasicClientActor(BasicClientActorAbs):
         :param end_state: Final state of the board.
         :return:
         """
-        #############################
-        #
-        #
-        # YOUR CODE HERE
-        #
-        #
-        ##############################
+
+        self.game.reset_game()
+
         print("Game over, these are the stats:")
         print('Winner: ' + str(winner))
         print('End state: ' + str(end_state))

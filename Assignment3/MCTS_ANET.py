@@ -2,9 +2,9 @@ import random
 import copy
 import numpy as np
 import time
-from Assignment3.MCTS_A2 import Node, get_best_child
+import os
+import csv
 from Assignment3.ANET import ANET
-from Assignment3.hex import Hex
 
 
 class MCTS_ANET:
@@ -21,6 +21,7 @@ class MCTS_ANET:
         self.RBUF = []
         self.save_interval = save_interval
         self.time = np.zeros(5)
+        self.size = size
 
     def simulate(self, t):
         """ Simulation of M different tree-searches to determine a move
@@ -55,10 +56,14 @@ class MCTS_ANET:
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
-        print("Dist: ", distribution)
         distribution = distribution / sum(distribution)
-        #print("Dist: ", distribution)
         self.RBUF.append((self.root_node.state, distribution))
+        if len(self.RBUF) > 2000:
+            self.RBUF.reverse()
+            new_buff = self.RBUF[:2000]
+            save_RBUF(self.RBUF[2000:], self.size)
+            self.RBUF = new_buff
+            self.RBUF.reverse()
         #print(time.time() - start)
         #print("Tree search: {:.2}s. \nExpansion: {:.2}s. \nEvaluation: {:2f}s. \nBackpropagation {:.2}s. \nTraining {:.2}s ".format(*self.time))
 
@@ -130,7 +135,7 @@ class MCTS_ANET:
             state = self.game_manager.do_action(state, action)
             moves += 1
         self.time[2] += time.time() - s
-        return -1 if moves % 2 == 0 else 1/moves
+        return -1 if moves % 2 == 0 else 1
 
     def backpropagation(self, leaf, reward):
         """ Passing the evaluation of a final state back up the tree, updating relevant data
@@ -163,7 +168,7 @@ class MCTS_ANET:
         Function to set the new root and keep the children of the new root
         """
         v = [c.visits for c in self.root_node.children]
-        #print("Root visits: ", v)
+        print("Root visits: ", v)
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
@@ -200,6 +205,51 @@ class MCTS_ANET:
             self.ANET.save_model(g)
         self.time[4] += time.time() - start
 
+
+class Node:
+
+    def __init__(self, state, action):
+        """ Initialize a Node-object
+
+        :param state: The state of the game in the Node
+        :param action: The action that lead to this node
+        """
+        self.state = state
+        self.children = []
+        self.parent = None
+        self.visits = 0
+        self.action = action
+        self.reward = 0
+        self.is_expanded = False
+        self.is_final_state = False
+        self.q_values = {}
+
+
+def get_best_child(node, max=True, c=1):
+    """Finds the next Node to visit in the tree search based on max or min player.
+
+    :param node: Node, current node
+    :param max: Boolean, max or min node
+    :return: Node, the best child
+    """
+    best_child = node.children[0]
+    visits = np.log(node.visits)
+    c = 2
+    best_value = node.q_values[best_child.action] + c * np.sqrt(visits / (1 + best_child.visits))
+    for child in node.children:
+        if max:
+            value = node.q_values[child.action] + c * np.sqrt(visits/(1 + child.visits))
+            if value > best_value:
+                best_value = value
+                best_child = child
+        elif not max:
+            value = node.q_values[child.action] - c * np.sqrt(visits / (1 + child.visits))
+            if value < best_value:
+                best_value = value
+                best_child = child
+    return best_child
+
+
 def distibution_to_action(distribution, actions):
     """
     Method to filter out the moves that isn't possible and returning the move with highest prob
@@ -210,3 +260,15 @@ def distibution_to_action(distribution, actions):
         if not a.__contains__(i):
             distribution[0][i] = 0
     return distribution.argmax(), actions[0][1]
+
+
+def save_RBUF(RBUF, size):
+    path = os.path.abspath('../Assignment3/RBUF/RBUF_' + str(size) + ".csv")
+    file_obj = open(path, 'a', newline='')
+
+    writer = csv.writer(file_obj, quoting=csv.QUOTE_ALL)
+
+    for state, dist in RBUF:
+        writer.writerow(state)
+        writer.writerow(dist)
+    file_obj.close()

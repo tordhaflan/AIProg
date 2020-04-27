@@ -1,6 +1,6 @@
 Board size: 6
 
-Number of episodes: 200
+Number of episodes: 400
 
 Time of simulation (in seconds): 10
 

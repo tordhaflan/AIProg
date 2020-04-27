@@ -35,12 +35,12 @@ class ANET:
 
         return dist.numpy()
 
-    def train(self, X, Y):
+    def train(self, X, Y, e=50):
         """
         Training method with a minibatch (currently trainig on the whole training set, since it only consist of one instance of every state)
         """
         x_train, y_train = self.make_mini_batch(X, Y)
-        self.model.fit(x_train, y_train, epochs=50)
+        self.model.fit(x_train, y_train, epochs=e)
 
     def process_x(self, X):
         """

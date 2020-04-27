@@ -4,6 +4,7 @@ import os
 import csv
 import numpy as np
 from tqdm import tqdm
+from tensorflow.keras.models import load_model
 from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
 from Assignment3.MCTS_ANET import MCTS_ANET, distibution_to_action
@@ -26,7 +27,7 @@ class Game:
         self.player = copy.deepcopy(self.initial_player)
         self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
-        self.delta = 0.01
+        self.delta = 0.25
 
     def run(self):
         """
@@ -41,7 +42,6 @@ class Game:
                 self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
                 time_sim -= self.delta
-
 
             self.mcts.train(i)
 
@@ -61,10 +61,9 @@ class Game:
                 self.player = copy.deepcopy(self.initial_player)
                 self.mcts.reset(self.state_player())
 
-            if i > self.episodes/2:
-                self.simulations = 60
-                self.delta = 3
-
+            #if i > self.episodes/2:
+            #    self.simulations = 60
+            #    self.delta = 3
         if self.game.game_over(self.game.get_board()):
             self.print_winner_statistics()
 
@@ -152,19 +151,20 @@ def process_state(state):
     return s, player
 
 
-def play(itt, board_size):
+def play(itt, board_size, start=1, model=None):
     """
     Method so that one can play agianst a version of the NN
     """
     game = Hex(board_size)
     player = 1
-    model = ANET(0.9, (10,15,20), 'linear', 'sgd', board_size)
-    model.load_model(itt)
+    if model is None:
+        model = ANET(0.9, (10,15,20), 'linear', 'sgd', board_size)
+        model.load_model(itt)
     board = copy.deepcopy(game.get_board())
     board.insert(0, player)
     while not game.game_over(game.get_board()):
         game.draw(player)
-        if player == 1:
+        if player == start:
             inn = ""
             while not inn.isdigit():
                 inn = input("Velg move: ")
@@ -219,7 +219,39 @@ RBUF = g.mcts.RBUF
 
 save_RBUF(RBUF, g.game.layers)
 
-
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
 #play(200, 5)
+"""
+lr = 0.0001
+nn = ANET(lr, (1024, 1024, 1024, 1024, 1024), 'relu', 'Adam', 5)
+
+RBUF = load_RBUF(5)
+
+size = len(RBUF)
+
+x_train = []
+y_train = []
+
+for i in range(size):
+    x_train.append(RBUF[i][0])
+    y_train.append(RBUF[i][1])
+
+for i in range(4):
+    nn.train(x_train, y_train, 50)
+
+path = os.path.abspath('../Assignment3/RBUF/' + 'RBUF_5_' + str(lr) + '.h5')
+name = "RBUF_5_" + str(lr)
+nn.model._name = name
+nn.model.save(path)
+"""
+"""
+lr = 0.001
+nn = ANET(lr, (1024, 1024, 1024, 1024, 1024), 'relu', 'Adam', 5)
+path = os.path.abspath('../Assignment3/RBUF/' + 'RBUF_5_' + str(lr) + '.h5')
+nn.model = load_model(path)
+play(0,5, 2, nn)
+"""
+
+
+
 
