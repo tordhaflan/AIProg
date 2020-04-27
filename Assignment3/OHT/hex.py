@@ -118,12 +118,12 @@ class Hex:
                         path.append(n)
         return False
 
-    def draw(self, player, itt1=None, itt2=None):
+    def draw(self, player, itt1=1, itt2=2):
         """
         Displaing a game/state
         """
         if len(self.final_path) != 0:
-            self.clean_final_path()
+            self.a_star()
         draw_board(self.board, player, self.final_path, itt1, itt2)
 
     def initial_game(self):
@@ -132,35 +132,43 @@ class Hex:
             return False
         return True
 
-    def clean_final_path(self):
-        path = copy.deepcopy(self.final_path)
-        dead_end = []
-        newpath = []
-        current = path.pop(0)
-        newpath.append(current)
-        end = path[-1]
-        while current != end:
-            neigh = []
+    def a_star(self):
+        frontier = []  # coordinates, g_score
+        came_from = {}
+        g_score = {}
+        f_score = {}
+
+        start = self.final_path.pop(0)
+        end = self.final_path[-1]
+
+        g_score[start] = 0
+        f_score[start] = abs(start[0] - end[0]) + abs(start[1] + end[1])
+
+        frontier.append((start, f_score[start]))
+
+        while len(frontier) > 0:
+            frontier.sort(key=lambda tup: tup[1])
+            current = frontier.pop(-1)[0]
+
+            if current == end:
+                new_path = [current]
+                while current in came_from.keys():
+                    current = came_from[current]
+                    new_path.append(current)
+                new_path.reverse()
+                self.final_path = new_path
+
             for n in self.board[current[0]][current[1]].neighbours:
-                if path.__contains__(n):
-                    neigh.append(n)
-            best = 1000
-            best_node = None
-            for n in neigh:
-                dist = abs(n[0]-end[0]) + abs(n[1]-end[1])
-                if dist < best and not newpath.__contains__(n) and not dead_end.__contains__(n):
-                    best = dist
-                    best_node = n
-            if best_node is None:
-                dead_end.append(current)
-                newpath.pop(-1)
-                current = newpath[-1]
-            else:
-                current = best_node
-
-            newpath.append(current)
-
-        self.final_path = newpath
+                if self.final_path.__contains__(n):
+                    g = g_score[current] + abs(n[0] - current[0]) + abs(n[1] + current[1])
+                    if n not in g_score.keys():
+                        g_score[n] = 100
+                    if g < g_score[n]:
+                        came_from[n] = current
+                        g_score[n] = g
+                        f_score[n] = g_score[n] + abs(n[0] - end[0]) + abs(n[1] + end[1])
+                        if not frontier.__contains__((n, f_score[n])):
+                            frontier.append((n, f_score[n]))
 
 
 class Peg:
