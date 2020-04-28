@@ -82,7 +82,10 @@ class ANET:
         self.model.save(path)
 
     def load_model(self, episode):
-        path = os.path.abspath('../OHT') + "/" + str(episode) + "_episodes.h5"
+        if episode == -1:
+            path = os.path.abspath('../OHT') + "/RBUF_6_1e-05.h5"
+        else:
+            path = os.path.abspath('../OHT') + "/" + str(episode) + "_episodes.h5"
         self.model = load_model(path)
 
 
