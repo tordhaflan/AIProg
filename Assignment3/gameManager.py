@@ -27,7 +27,7 @@ class Game:
         self.player = copy.deepcopy(self.initial_player)
         self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
-        self.delta = 0.95
+        self.delta = 2
 
     def run(self):
         """
@@ -41,7 +41,7 @@ class Game:
                 action = self.mcts.simulate(time_sim)
                 self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
-                time_sim *= self.delta
+                time_sim -= self.delta
 
             self.mcts.train(i)
 

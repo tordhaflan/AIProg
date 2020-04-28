@@ -56,7 +56,7 @@ class MCTS_ANET:
         distribution = np.zeros(len(self.root_node.state) - 1)
         for child in self.root_node.children:
             distribution[child.action[0]] = child.visits
-        print("Dist:", distribution)
+        #print("Dist:", distribution)
         distribution = distribution / sum(distribution)
         self.RBUF.append((self.root_node.state, distribution))
         if len(self.RBUF) > 2000:
@@ -169,7 +169,7 @@ class MCTS_ANET:
         Function to set the new root and keep the children of the new root
         """
         v = [c.visits for c in self.root_node.children]
-        #print("Root visits: ", v)
+        print("Root visits: ", v)
         for child in self.root_node.children:
             if child.state == state:
                 self.root_node = child
@@ -235,7 +235,6 @@ def get_best_child(node, max=True, c=1):
     """
     best_child = node.children[0]
     visits = np.log(node.visits)
-    c = 2
     best_value = node.q_values[best_child.action] + c * np.sqrt(visits / (1 + best_child.visits))
     for child in node.children:
         if max:
