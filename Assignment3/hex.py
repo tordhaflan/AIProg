@@ -334,7 +334,6 @@ def draw_board(board, winner=1, final_path=[], itt1 = None, itt2 = None):
     pos = nx.get_node_attributes(G, 'pos')
     color, border = sort_color(pos, color_map, border_color)
     nx.draw_networkx(G, pos, node_color=color, edgecolors=border, edges=edges, edge_color=colors, width=weights, with_labels=False)
-
     #Printing of itteration labels
     if itt1 is not None and itt2 is not None:
         if itt1 == 1 and itt2 == 2:
@@ -352,8 +351,10 @@ def draw_board(board, winner=1, final_path=[], itt1 = None, itt2 = None):
         plt.text(h, v, s=s2, fontsize=16, color='black', horizontalalignment='right', bbox=dict(facecolor='white', edgecolor='blue', pad=5.0))
     #Background on board
     plt.gca().set_facecolor('ghostwhite')
-
     plt.show()
+    plt.pause(0.2)
+
+
 
 """
 h = Hex(4)

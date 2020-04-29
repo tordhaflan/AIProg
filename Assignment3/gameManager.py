@@ -9,6 +9,8 @@ from Assignment3.hex import Hex, draw_board
 from Assignment3.read_file import read_file
 from Assignment3.MCTS_ANET import MCTS_ANET, distibution_to_action
 from Assignment3.ANET import ANET
+from Assignment3.TOPP import TOPP
+import keras.backend as K
 
 
 class Game:
@@ -27,18 +29,22 @@ class Game:
         self.player = copy.deepcopy(self.initial_player)
         self.mcts = MCTS_ANET(self, self.state_player(), params[4:8], self.game.layers, int(self.episodes/(params[8]-1))) # Endret siste param her, sånn at vi får 0,50,100,150 og 200.
         self.winner = []
-        self.delta = 2
+        self.delta = 0.1
+
+        #For the TOPP
+        self.TOPP = TOPP(self.episodes, params[8], params[9], self.game.layers)
 
     def run(self):
         """
         Running the simulation G times.
         """
+        epsilon = 0.2
         for i in tqdm(range(self.episodes)):
             time_sim = copy.deepcopy(self.simulations)
             while not self.game.game_over(self.game.get_board()):
                 if not self.game.initial_game():
                     self.mcts.set_new_root(self.state_player())
-                action = self.mcts.simulate(time_sim)
+                action = self.mcts.simulate(time_sim, epsilon)
                 self.game.do_move(action, self.player)
                 self.player = (self.player % 2) + 1
                 time_sim -= self.delta
@@ -50,8 +56,10 @@ class Game:
 
             #Sett denne opp for å visualisere hvert game
             #self.game.draw((self.player % 2) + 1)
+
             self.winner.append(self.player % 2 + 1)
             print(self.winner)
+
             if True:
                 print("\nPlayer " + str(self.winner[-1]) + " wins \n")
 
@@ -60,13 +68,14 @@ class Game:
                 self.initial_player = (self.initial_player % 2) + 1
                 self.player = copy.deepcopy(self.initial_player)
                 self.mcts.reset(self.state_player())
-
-            #if i > self.episodes/2:
-            #   self.simulations = 60
-            #    self.delta = 0.85
+                if i > self.episodes*0.5:
+                    epsilon = 0
+                elif i > self.episodes*0.25:
+                    epsilon = 0.1
 
         if self.game.game_over(self.game.get_board()):
             self.print_winner_statistics()
+            self.TOPP.run_topp(False, K.eval(self.mcts.ANET.model.optimizer.lr))
 
     def print_winner_statistics(self):
         print("\nPlayer 1 wins: ", self.winner.count(1))
@@ -222,11 +231,18 @@ save_RBUF(RBUF, g.game.layers)
 
 #Kommenter ut main og kjør denne, så kan du spille mot et NN (episoder, brettstørrelse)
 #play(200, 5)
-"""
-lr = 0.0001
-nn = ANET(lr, (1024, 1024, 1024, 1024, 1024), 'relu', 'Adam', 5)
 
-RBUF = load_RBUF(5)
+
+"""
+lr = 0.00005
+nn = ANET(lr, (1024, 1024, 1024, 1024, 1024), 'relu', 'Adam', 6)
+
+RBUF = load_RBUF(4)
+
+one_start = np.zeros(37)
+one_start[0] = 1
+two_start = np.zeros(37)
+two_start[0] = 2
 
 size = len(RBUF)
 
@@ -234,18 +250,25 @@ x_train = []
 y_train = []
 
 for i in range(size):
-    x_train.append(RBUF[i][0])
-    y_train.append(RBUF[i][1])
+    #x_train.append(RBUF[i][0])
+    #y_train.append(RBUF[i][1])
+    state = RBUF[i][0][1:]
+    if not state.__contains__(1) and not state.__contains__(2):
+        m = np.array(RBUF[i][1])
+        print("Max: {:.3}, {} ".format(m.max(),m.argmax()), "Dist:", ''.join('{:.2}, '.format(x) for x in RBUF[i][1]))
+        if m.max() > 0.1:
+            print('State: ', RBUF[i][0])
 
-for i in range(4):
-    nn.train(x_train, y_train, 50)
+for i in range(100):
+    print(i)
+    nn.train(x_train, y_train, 10)
 
-path = os.path.abspath('../Assignment3/RBUF/' + 'RBUF_5_' + str(lr) + '.h5')
-name = "RBUF_5_" + str(lr)
+path = os.path.abspath('../Assignment3/OHT/' + 'RBUF_6_' + str(lr) + '.h5')
+name = "RBUF_6_" + str(lr)
 nn.model._name = name
 nn.model.save(path)
-"""
-"""
+
+
 lr = 0.001
 nn = ANET(lr, (1024, 1024, 1024, 1024, 1024), 'relu', 'Adam', 5)
 path = os.path.abspath('../Assignment3/RBUF/' + 'RBUF_5_' + str(lr) + '.h5')

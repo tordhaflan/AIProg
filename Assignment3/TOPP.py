@@ -1,5 +1,4 @@
 import copy
-import numpy as np
 from Assignment3.hex import Hex
 from Assignment3.ANET import ANET
 from Assignment3.MCTS_ANET import distibution_to_action
@@ -7,26 +6,29 @@ from Assignment3.MCTS_ANET import distibution_to_action
 
 class TOPP:
 
-    def __init__(self, episodes, m, g, k):
+    def __init__(self, episodes, m, g, k, rbuf=0):
         self.episodes = episodes
         self.saves = m
         self.games = g
         self.layers = k
 
         self.winners = {}
-        self.statistics = [0 for j in range(self.saves)]
+        self.statistics = [0 for j in range(self.saves+rbuf)]
         for i in range(self.saves):
             self.winners[i*int(self.episodes/(self.saves-1))] = 0
-            self.statistics[i] = [0 for j in range(self.saves)]
+            self.statistics[i] = [0 for j in range(self.saves+rbuf)]
+        if rbuf != 0:
+            self.winners[-1] = 0
+            self.statistics[-1] = [0 for j in range(self.saves+1)]
 
-    def run_topp(self, verbose=False):
+    def run_topp(self, verbose=False, lr=0.0):
         for i, itt1 in enumerate(self.winners):
             for j, itt2 in enumerate(self.winners):
                 if itt2 < itt1:
                     print(itt1,itt2)
                     for g in range(self.games):
                         if g % 2 == 0:
-                            winner = self.play(itt1, itt2, verbose)
+                            winner = self.play(itt1, itt2, verbose, lr)
                             if winner == 1:
                                 print("Itt:", itt1, "won over itt:", itt2, "- Itt", itt1, "started")
                                 self.winners[itt1] += 1
@@ -36,7 +38,7 @@ class TOPP:
                                 self.winners[itt2] += 1
                                 self.statistics[j][i] += 1
                         else:
-                            winner = self.play(itt2, itt1, verbose)
+                            winner = self.play(itt2, itt1, verbose, lr)
                             if winner == 1:
                                 print("Itt:", itt2, "won over itt:", itt1, "- Itt", itt2, "started")
                                 self.winners[itt2] += 1
@@ -48,13 +50,17 @@ class TOPP:
 
         self.print_results()
 
-    def play(self, itt1, itt2, verbose=False):
+    def play(self, itt1, itt2, verbose=False, lr=0.0):
         game = Hex(self.layers)
         player = 1
         model1 = ANET(0.9, (10, 15, 20), 'linear', 'sgd', self.layers)
-        model1.load_model(itt1)
         model2 = ANET(0.9, (10, 15, 20), 'linear', 'sgd', self.layers)
-        model2.load_model(itt2)
+        if lr != 0:
+            model1.load_model(itt1, lr)
+            model2.load_model(itt2, lr)
+        else:
+            model1.load_model(itt1)
+            model2.load_model(itt2)
 
         board = copy.deepcopy(game.get_board())
         board.insert(0, player)
@@ -90,7 +96,5 @@ class TOPP:
             print("  I-{:<3} |".format(keys[i]) + ''.join([''.join(['{:^5}|'.format(item) for item in row])]) + '{:^5}|'.format(sum(row)))
 
 
-
-
-t = TOPP(50, 6, 10, 6)
-t.run_topp(False)
+#t = TOPP(200, 5, 4, 5)
+#t.run_topp(True, 0.00005)

@@ -2,6 +2,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import *
 import tensorflow as tf
+import keras.backend as K
 import numpy as np
 import os
 
@@ -75,13 +76,19 @@ class ANET:
                tf.convert_to_tensor(np.array(y_train).reshape((len(y_train), self.size**2)), dtype=tf.float32)
 
     def save_model(self, episode):
-        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
+        lr = str(K.eval(self.model.optimizer.lr))
+        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes_" + lr + ".h5"
         name = self.name + "_" + str(episode) + "_episodes"
         self.model._name = name
         self.model.save(path)
 
-    def load_model(self, episode):
-        path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
+    def load_model(self, episode, lr=0):
+        if episode == -1:
+            path = os.path.abspath('../Assignment3/OHT') + "/RBUF_6_5e-05.h5"
+        elif lr != 0:
+            path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes_" + str(lr) + ".h5"
+        else:
+            path = os.path.abspath('../Assignment3/Models/Hex_' + str(self.size)) + '/' + str(episode) + "_episodes.h5"
         self.model = load_model(path)
 
 
