@@ -15,7 +15,7 @@ class BasicClientActor(BasicClientActorAbs):
 
         self.game = Hex(6)
         self.model = ANET(0.9, (10, 15, 20), 'linear', 'sgd', self.size)
-        self.model.load_model(40)
+        self.model.load_model(200)
 
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
